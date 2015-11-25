@@ -1,7 +1,14 @@
-module fleet.stage;
+module fleet.render.stage;
+
+import fleet.render.geometry;
 
 import derelict.sdl2.sdl;
 import derelict.opengl3.gl3;
+import gl3n.linalg;
+
+import core.thread;
+import core.time;
+import std.string;
 
 debug import std.stdio;
 
@@ -31,7 +38,7 @@ public static Stage CreateStage()
 	auto versn =DerelictGL3.reload();
 	debug writefln( "Loaded GL version %d", versn );
 	
-	return new Stage( window, glContext );
+	return new Stage( window, glContext, 640, 480 );
 }
 
 /++ Definitions on how to Render Scene Objects ++/
@@ -50,16 +57,22 @@ private:
 	static SDL_GLContext _glContext;
 	
 	uint shader, vertex_shader, fragment_shader;
-	uint vertex_buffer, vertex_object;
-	
+	int _width, _height;
+	float _aspectRatio;
+	int _pvmLocation, _colourLocation;
+	Shape _shape;
+	Render _render;
 	
 public: /+----    Functions    ----+/
-	this( SDL_Window* window, SDL_GLContext glcontext )
+	this( SDL_Window* window, SDL_GLContext glcontext, int width, int height )
 	{
 		this.OnStart ={};
 		this.OnQuit ={};
-		_window =window;
-		_glContext =glcontext;
+		this._window =window;
+		this._glContext =glcontext;
+		this._width =width;
+		this._height =height;
+		this._aspectRatio =cast(float)_width /height;
 	}
 	~this()
 	{
@@ -73,42 +86,42 @@ public: /+----    Functions    ----+/
 		this._isRunning =false; 
 	}
 	void Start()
-	{ 
-		auto verts =[0f,.5f,0f, .5f,-.5f,0f, -.5f,-.5f,0f];
-		glGenBuffers( 1, &vertex_buffer );
-		glBindBuffer( GL_ARRAY_BUFFER, vertex_buffer );
-		glBufferData( GL_ARRAY_BUFFER, 9U *float.sizeof, verts.ptr, GL_STATIC_DRAW );
-		
-		/+ Draw a cool triangle for now +/
-		
-		glGenVertexArrays( 1, &vertex_object );
-		glBindVertexArray( vertex_object );
-		glEnableVertexAttribArray( 0 );
-		glBindBuffer( GL_ARRAY_BUFFER, vertex_object );
-		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, null );
-		
+	{ 		
+		_shape =new Shape();
+		auto verts =[0f,0f,0f,
+		0f,1f,0f,
+		1f,0f,0f,
+		1f,1f,0f,
+		1f,0f,0f,
+		0f,1f,0f,
+		];
+		_shape.LoadVertices( verts );
+		_shape.Colour =vec3( 1f, 0f, 1f );
+		_render =new Render();
+		_render.LoadObject( _shape );
 		/+ Move this shader stuff out of here ASAP +/
 		const char* vertex_script =	"#version 400\n"
-"in vec3 vp;"
+"uniform mat4 pvm;"
+"layout(location = 0) in vec3 vp;"
 "void main () {"
-"  gl_Position = vec4 (vp, 1.0);"
+"  gl_Position = pvm *vec4(vp, 1.0);"
 "}";
 		const char* fragment_script ="#version 400\n"
 "out vec4 frag_colour;"
+"uniform vec3 model_colour;"
 "void main () {"
-"  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);"
+"  frag_colour = vec4 (model_colour, 1.0);"
 "}";
-		vertex_shader =glCreateShader( GL_VERTEX_SHADER );
-		glShaderSource( vertex_shader, 1, &vertex_script, null );
-		glCompileShader( vertex_shader );
-		fragment_shader =glCreateShader( GL_FRAGMENT_SHADER );
-		glShaderSource( fragment_shader, 1, &fragment_script, null );
-		glCompileShader( fragment_shader );
+		vertex_shader =LoadShader( GL_VERTEX_SHADER, vertex_script );
+		fragment_shader =LoadShader( GL_FRAGMENT_SHADER, fragment_script );
 		
 		shader =glCreateProgram();
 		glAttachShader( shader, vertex_shader );
 		glAttachShader( shader, fragment_shader );
 		glLinkProgram( shader );
+		this._perspective =mat4.orthographic(-10f,10f ,-10f /_aspectRatio,10f /_aspectRatio,0f,1f);
+		this._pvmLocation =glGetUniformLocation( shader, "pvm" );
+		this._colourLocation =glGetUniformLocation( shader, "model_colour" );
 		
 		this.OnStart();
 		this._isRunning =true;
@@ -116,12 +129,14 @@ public: /+----    Functions    ----+/
 	}
 	void delegate() OnStart, OnQuit;
 private:
+	mat4 _perspective;
 	void RenderLoop()
 	{
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glUseProgram( shader );
-		glBindVertexArray( vertex_object );
-		glDrawArrays( GL_TRIANGLES, 0, 3 );
+		
+		glUniformMatrix4fv( _pvmLocation, 1, GL_TRUE, _perspective.value_ptr );
+		this._render.Render(0, _colourLocation);
 		
 		SDL_GL_SwapWindow( _window );
 	}
@@ -141,10 +156,24 @@ private:
 						break;
 				}
 			}
+			debug
+			{
+				auto error =glGetError();
+				if( error ){ writeln(error); }
+			}
 			RenderLoop();
+			Thread.sleep(dur!"msecs"(20));
 		}
 	}
 	/+ networkLoop? +/
+}
+
+private uint LoadShader( uint shaderType, const char* shader )
+{
+		uint shader_buf =glCreateShader( shaderType );
+		glShaderSource( shader_buf, 1, &shader, null );
+		glCompileShader( shader_buf );
+		return shader_buf;
 }
 
 /++ Contains Collections of Items to be rendered ++/
@@ -152,7 +181,4 @@ class Scene
 {
 	/+ Stage Reference? +/
 }
-interface IRenderable  /+ Replace with a `Renderer` class with options as data objects? +/
-{
-	void Render();
-}
+

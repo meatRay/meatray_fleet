@@ -1,15 +1,12 @@
 module fleet.space;
 
-import fleet.stage;
+import fleet.render.stage;
 
 import std.container;
-import core.thread;
-import core.time;
 
 void main()
 {
 	Stage stage =CreateStage();
-	/+ Thread.sleep(dur!"seconds"(4)); +/
 	stage.Start();
 }
 class Space

@@ -1,6 +1,6 @@
 module fleet.space;
 
-import fleet.render.stage;
+import fleet.theatre.stage;
 
 import std.container;
 

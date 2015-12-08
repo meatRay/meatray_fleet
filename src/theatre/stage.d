@@ -1,6 +1,6 @@
-module fleet.render.stage;
+module fleet.theatre.stage;
 
-import fleet.render.geometry;
+import fleet.theatre.rendering;
 
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
@@ -107,7 +107,7 @@ public: /+----    Functions    ----+/
 			TexPoint(1,1),
 			TexPoint(0,0)
 		];
-		_shape.LoadVertices( verts, map );
+		_shape.LoadVertices( Shape.Primitives.SquareVertices, Shape.Primitives.SquareMap );
 		_shape.Colour =vec3( 1f, 0f, 1f );
 		auto _tex =CreateTexture( "block.png" );
 		debug writeln( _tex.AsOutput );

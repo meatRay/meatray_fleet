@@ -7,33 +7,56 @@ import derelict.sdl2.image, derelict.sdl2.sdl;
 import std.string;
 import std.stdio;
 
-struct Point
+struct TexPoint
 {
-	public this( float x, float y, float z, ushort u, ushort v )
+	public this( ushort u, ushort v )
+		{ UV.u =u; UV.v =v; }
+	Vector!(ushort,2) UV;
+}
+
+struct Location
+{
+	public this( float x, float y, float z )
 	{
 		Position.x =x; Position.y =y; Position.z =z;
-		UV.u =u; UV.v =v;
+		//UV.u =u; UV.v =v;
 	}
 	Vector!(float,3) Position;
-	Vector!(ushort,2) UV;
+	//Vector!(ushort,2) UV;
 }
 
 class Shape  /+ Replace with a `Renderer` class with options as data objects? +/
 {
 	public Vector!(float,3) Colour;
 	public int Points;
-	private uint _vertexBuffer;
-	public void LoadVertices( Point[] vertices )
+	private uint _vertexBuffer, _mapBuffer;
+	public void LoadVertices( Location[] vertices, TexPoint[] map )
 	{
 		this.Points =vertices.length;
+		assert( vertices.length == map.length );
 		glGenBuffers( 1, &_vertexBuffer );
+		glGenBuffers( 1, &_mapBuffer );
 		glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
-		debug writefln("Vertices bytesize: %d", vertices.length *Point.sizeof);
-		float[] verfs =cast(float[])vertices;
-		glBufferData( GL_ARRAY_BUFFER, vertices.length *Point.sizeof, cast(float*)(vertices.ptr), GL_STATIC_DRAW );
+		debug writefln("Vertices bytesize: %d", vertices.length *Location.sizeof);
+		glBufferData( GL_ARRAY_BUFFER, vertices.length *Location.sizeof, cast(float*)(vertices.ptr), GL_STATIC_DRAW );
+		glBindBuffer( GL_ARRAY_BUFFER, _mapBuffer );
+		debug writefln("Map bytesize: %d", map.length *TexPoint.sizeof);
+		glBufferData( GL_ARRAY_BUFFER, map.length *TexPoint.sizeof, cast(ushort*)(map.ptr), GL_STATIC_DRAW );
 	}
 	package void BindBuffer()
 		{ glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer ); }
+	package void SetAttributes()
+	{
+		glBindBuffer( GL_ARRAY_BUFFER, _vertexBuffer );
+		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, null );
+		glBindBuffer( GL_ARRAY_BUFFER, _mapBuffer );
+		glVertexAttribPointer( 1, 2, GL_UNSIGNED_SHORT, GL_FALSE, 0, null );
+	}
+}
+
+interface IRenderable
+{
+	@property public Render Renderer();
 }
 class Render
 {
@@ -49,9 +72,8 @@ class Render
 		glEnableVertexAttribArray( 0 );
 		glEnableVertexAttribArray( 1 );
 		glBindBuffer( GL_ARRAY_BUFFER, _objectBuffer );
-		shape.BindBuffer();
-		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, (float.sizeof *3) +(ushort.sizeof *2), null );
-		glVertexAttribPointer( 1, 2, GL_UNSIGNED_SHORT, GL_FALSE, (float.sizeof *3) +(ushort.sizeof *2), cast(void*)(float.sizeof *3) );
+		shape.SetAttributes();
+		
 	}
 	public void Render( int _transformUniform ,int _colourUniform )
 	{

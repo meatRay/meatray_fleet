@@ -9,6 +9,7 @@ import gl3n.linalg;
 
 import core.thread;
 import core.time;
+import std.container;
 import std.string;
 
 debug import std.stdio;
@@ -91,14 +92,22 @@ public: /+----    Functions    ----+/
 		_shape =new Shape();
 		/+Set to texels (yes!) or make (0, ushort.max) /texture.size helper funcs.+/
 		auto verts =[
-		Point(0f,0f,0f,0,1),
-		Point(0f,1f,0f,0,0),
-		Point(1f,0f,0f,1,1),
-		Point(1f,1f,0f,1,0),
-		Point(1f,0f,0f,1,1),
-		Point(0f,1f,0f,0,0)
+			Location(0f,0f,0f),
+			Location(0f,1f,0f),
+			Location(1f,0f,0f),
+			Location(1f,1f,0f),
+			Location(1f,0f,0f),
+			Location(0f,1f,0f)
 		];
-		_shape.LoadVertices( verts );
+		auto map =[
+			TexPoint(0,1),
+			TexPoint(0,0),
+			TexPoint(1,1),
+			TexPoint(1,0),
+			TexPoint(1,1),
+			TexPoint(0,0)
+		];
+		_shape.LoadVertices( verts, map );
 		_shape.Colour =vec3( 1f, 0f, 1f );
 		auto _tex =CreateTexture( "block.png" );
 		debug writeln( _tex.AsOutput );
@@ -195,4 +204,5 @@ private uint LoadShader( uint shaderType, const char* shader )
 class Scene
 {
 	/+ Stage Reference? +/
+	public DList!IRenderable Props;
 }

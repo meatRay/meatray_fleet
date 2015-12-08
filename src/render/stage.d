@@ -3,6 +3,7 @@ module fleet.render.stage;
 import fleet.render.geometry;
 
 import derelict.sdl2.sdl;
+import derelict.sdl2.image;
 import derelict.opengl3.gl3;
 import gl3n.linalg;
 
@@ -17,6 +18,7 @@ public static Stage CreateStage()
 	import std.exception :enforce;
 	DerelictGL3.load();
 	DerelictSDL2.load();
+	DerelictSDL2Image.load();
 	
 	SDL_Window* window;
 	SDL_GLContext glContext;
@@ -37,7 +39,6 @@ public static Stage CreateStage()
 	
 	auto versn =DerelictGL3.reload();
 	debug writefln( "Loaded GL version %d", versn );
-	
 	return new Stage( window, glContext, 640, 480 );
 }
 
@@ -86,31 +87,42 @@ public: /+----    Functions    ----+/
 		this._isRunning =false; 
 	}
 	void Start()
-	{ 		
+	{ 
 		_shape =new Shape();
-		auto verts =[0f,0f,0f,
-		0f,1f,0f,
-		1f,0f,0f,
-		1f,1f,0f,
-		1f,0f,0f,
-		0f,1f,0f,
+		/+Set to texels (yes!) or make (0, ushort.max) /texture.size helper funcs.+/
+		auto verts =[
+		Point(0f,0f,0f,0,1),
+		Point(0f,1f,0f,0,0),
+		Point(1f,0f,0f,1,1),
+		Point(1f,1f,0f,1,0),
+		Point(1f,0f,0f,1,1),
+		Point(0f,1f,0f,0,0)
 		];
 		_shape.LoadVertices( verts );
 		_shape.Colour =vec3( 1f, 0f, 1f );
+		auto _tex =CreateTexture( "block.png" );
+		debug writeln( _tex.AsOutput );
 		_render =new Render();
-		_render.LoadObject( _shape );
+		_render.LoadObject( _shape, _tex );
 		/+ Move this shader stuff out of here ASAP +/
 		const char* vertex_script =	"#version 400\n"
 "uniform mat4 pvm;"
 "layout(location = 0) in vec3 vp;"
+"layout(location = 1) in vec2 v_uv;"
+"out vec2 uv;"
 "void main () {"
+"  uv =v_uv;"
 "  gl_Position = pvm *vec4(vp, 1.0);"
 "}";
+	
+		/+Replace with texels for Spritesheet Accuracy!+/
 		const char* fragment_script ="#version 400\n"
-"out vec4 frag_colour;"
 "uniform vec3 model_colour;"
+"in vec2 uv;"
+"uniform sampler2D model_texture;"
+"out vec4 frag_colour;"
 "void main () {"
-"  frag_colour = vec4 (model_colour, 1.0);"
+"  frag_colour = texture(model_texture, uv) *vec4 (model_colour, 1.0);"
 "}";
 		vertex_shader =LoadShader( GL_VERTEX_SHADER, vertex_script );
 		fragment_shader =LoadShader( GL_FRAGMENT_SHADER, fragment_script );
@@ -123,18 +135,21 @@ public: /+----    Functions    ----+/
 		this._pvmLocation =glGetUniformLocation( shader, "pvm" );
 		this._colourLocation =glGetUniformLocation( shader, "model_colour" );
 		
+		_texid =glGetUniformLocation(shader, "model_texture");
 		this.OnStart();
 		this._isRunning =true;
 		UpdateLoop();
 	}
 	void delegate() OnStart, OnQuit;
 private:
+	uint _texid;
 	mat4 _perspective;
 	void RenderLoop()
 	{
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glUseProgram( shader );
-		
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(_texid, 0);
 		glUniformMatrix4fv( _pvmLocation, 1, GL_TRUE, _perspective.value_ptr );
 		this._render.Render(0, _colourLocation);
 		
@@ -159,7 +174,7 @@ private:
 			debug
 			{
 				auto error =glGetError();
-				if( error ){ writeln(error); }
+				if( error ){ writefln("OPENGL ERROR CODE %d", error); }
 			}
 			RenderLoop();
 			Thread.sleep(dur!"msecs"(20));
@@ -181,4 +196,3 @@ class Scene
 {
 	/+ Stage Reference? +/
 }
-

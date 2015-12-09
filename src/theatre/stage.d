@@ -7,10 +7,10 @@ import derelict.sdl2.image;
 import derelict.opengl3.gl3;
 import gl3n.linalg;
 
-import core.thread;
-import core.time;
+import core.thread, core.time;
 import std.container;
 import std.string;
+import std.range, std.algorithm;
 
 debug import std.stdio;
 
@@ -48,6 +48,7 @@ class Stage
 {
 public: /+----    Variables    ----+/
 	/+ I spent way too long debating gross camelCase or PascalCase.  Got to be consistent. +/ 
+	@property float AspectRatio(){ return this._aspectRatio; }
 	@property Scene CurrentScene(){ return this._currentScene; }
 	Scene SetScene(Scene scene){ return this._currentScene =scene; }
 	
@@ -55,6 +56,7 @@ private:
 	Scene _currentScene;
 	bool _isRunning;
 	
+	/+Currently lock all Stages to the same Context+/
 	static SDL_Window* _window;
 	static SDL_GLContext _glContext;
 	
@@ -62,8 +64,6 @@ private:
 	int _width, _height;
 	float _aspectRatio;
 	int _pvmLocation, _colourLocation;
-	Shape _shape;
-	Render _render;
 	
 public: /+----    Functions    ----+/
 	this( SDL_Window* window, SDL_GLContext glcontext, int width, int height )
@@ -89,30 +89,6 @@ public: /+----    Functions    ----+/
 	}
 	void Start()
 	{ 
-		_shape =new Shape();
-		/+Set to texels (yes!) or make (0, ushort.max) /texture.size helper funcs.+/
-		auto verts =[
-			Location(0f,0f,0f),
-			Location(0f,1f,0f),
-			Location(1f,0f,0f),
-			Location(1f,1f,0f),
-			Location(1f,0f,0f),
-			Location(0f,1f,0f)
-		];
-		auto map =[
-			TexPoint(0,1),
-			TexPoint(0,0),
-			TexPoint(1,1),
-			TexPoint(1,0),
-			TexPoint(1,1),
-			TexPoint(0,0)
-		];
-		_shape.LoadVertices( Shape.Primitives.SquareVertices, Shape.Primitives.SquareMap );
-		_shape.Colour =vec3( 1f, 0f, 1f );
-		auto _tex =CreateTexture( "block.png" );
-		debug writeln( _tex.AsOutput );
-		_render =new Render();
-		_render.LoadObject( _shape, _tex );
 		/+ Move this shader stuff out of here ASAP +/
 		const char* vertex_script =	"#version 400\n"
 "uniform mat4 pvm;"
@@ -140,11 +116,13 @@ public: /+----    Functions    ----+/
 		glAttachShader( shader, vertex_shader );
 		glAttachShader( shader, fragment_shader );
 		glLinkProgram( shader );
-		this._perspective =mat4.orthographic(-10f,10f ,-10f /_aspectRatio,10f /_aspectRatio,0f,1f);
 		this._pvmLocation =glGetUniformLocation( shader, "pvm" );
 		this._colourLocation =glGetUniformLocation( shader, "model_colour" );
 		
 		_texid =glGetUniformLocation(shader, "model_texture");
+		
+		debug writefln("Texture Uniform: %d\nColour Uniform: %d\nMatrix Uniform: %d\n",
+			_texid, _colourLocation, _pvmLocation );
 		this.OnStart();
 		this._isRunning =true;
 		UpdateLoop();
@@ -152,17 +130,22 @@ public: /+----    Functions    ----+/
 	void delegate() OnStart, OnQuit;
 private:
 	uint _texid;
-	mat4 _perspective;
 	void RenderLoop()
 	{
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glUseProgram( shader );
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(_texid, 0);
-		glUniformMatrix4fv( _pvmLocation, 1, GL_TRUE, _perspective.value_ptr );
-		this._render.Render(0, _colourLocation);
+
+		foreach( render; _currentScene.Props )
+			{ render.Render(_currentScene.Perspective, _pvmLocation, _colourLocation); }
 		
 		SDL_GL_SwapWindow( _window );
+	}
+	void ParseKey( SDL_KeyboardEvent evnt )
+	{
+		if( evnt.state == SDL_PRESSED && evnt.keysym.sym == SDLK_ESCAPE )
+			{ _isRunning =false; }
 	}
 	void UpdateLoop()
 	{
@@ -175,6 +158,10 @@ private:
 				{
 					case SDL_QUIT:
 						this._isRunning =false;
+						break;
+					case SDL_KEYDOWN:
+					case SDL_KEYUP:
+						ParseKey( windowEvent.key );
 						break;
 					default:
 						break;
@@ -203,6 +190,37 @@ private uint LoadShader( uint shaderType, const char* shader )
 /++ Contains Collections of Items to be rendered ++/
 class Scene
 {
+	enum View{ None, Ortho };
+	private View _view;
+	@property public View CurrentView(){ return this._view; }
+	public this( View view_type, float width, float height )
+	{
+		this.Location =vec3(0f,0f,0f);
+		SetView( view_type, width, height );
+	}
+	public void SetView( View view_type, float width, float height )
+	{
+		_view =view_type;
+		switch( view_type )
+		{
+			case View.Ortho:
+				Perspective =mat4.orthographic( width /-2f, width /2f, height /-2f, height /2f, 0f, 1f );
+				return;			
+			default:
+				Perspective =mat4.identity;
+				return;
+		}
+	}
+	package mat4 Perspective;
+	package vec3 Location;
 	/+ Stage Reference? +/
-	public DList!IRenderable Props;
+	package DList!Render Props;
+	public void AddProp( IRenderable renderable )
+		{ this.Props.insert( renderable.Renderer ); }
+	public void AddProp( Render render )
+		{ this.Props.insert( render ); }
+	public void RemoveProp( IRenderable renderable )
+		{ this.Props.linearRemove( Props[].find(renderable.Renderer).take(1) ); }
+	public void RemoveProp( Render render )
+		{ this.Props.linearRemove( Props[].find(render).take(1) ); }
 }

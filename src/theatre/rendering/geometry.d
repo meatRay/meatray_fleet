@@ -23,7 +23,6 @@ struct Location
 
 class Shape  /+ Replace with a `Renderer` class with options as data objects? +/
 {
-	public Vector!(float,3) Colour;
 	public int Points;
 	private uint _vertexBuffer, _mapBuffer;
 	public void LoadVertices( in Location[] vertices, in TexPoint[] map )

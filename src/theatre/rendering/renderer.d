@@ -4,6 +4,8 @@ import fleet.theatre.rendering.textures;
 import fleet.theatre.rendering.geometry;
 
 import derelict.opengl3.gl3;
+import gl3n.linalg;
+public import gl3n.linalg: Vector;
 
 interface IRenderable
 {
@@ -11,6 +13,10 @@ interface IRenderable
 }
 class Render
 {
+	public Vector!(float,3) Colour;
+	public this()
+		{ Position =vec3(0f,0f,0f); }
+	public vec3 Position;
 	private uint _objectBuffer;
 	private Shape _shape;
 	private Texture _texture;
@@ -26,11 +32,13 @@ class Render
 		shape.SetAttributes();
 		
 	}
-	public void Render( int _transformUniform ,int _colourUniform )
+	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
 		_texture.BindBuffer();
 		glBindVertexArray( _objectBuffer );
-		glUniform3fv( _colourUniform, 1, _shape.Colour.value_ptr );
+		glUniform3fv( _colourUniform, 1, Colour.value_ptr );
+		pv =pv *mat4.translation( Position );
+		glUniformMatrix4fv( _transformUniform, 1, GL_TRUE, pv.value_ptr);
 		glDrawArrays( GL_TRIANGLES, 0, _shape.Points );
 	}
 }

@@ -1,12 +1,37 @@
 module fleet.space;
 
 import fleet.theatre.stage;
+import fleet.theatre.rendering;
 
 import std.container;
+debug import std.stdio;
 
 void main()
 {
 	Stage stage =CreateStage();
+	stage.SetScene( new Scene(Scene.View.Ortho, 10f, 10f /stage.AspectRatio ) );
+	
+	
+	auto shape =new Shape();
+	shape.LoadVertices( Shape.Primitives.SquareVertices, Shape.Primitives.SquareMap );
+	auto tex =CreateTexture( "box.png" );
+	debug writeln( tex.AsOutput );
+	{
+		auto render =new Render();
+		render.LoadObject( shape, tex );
+		render.Colour =Vector!(float,3)(1f,0f,0f);
+		render.Position =Vector!(float,3)(0f,0f,0f);
+		stage.CurrentScene.AddProp( render );
+	}
+	{
+		auto render =new Render();
+		render.LoadObject( shape, tex );
+		render.Colour =Vector!(float,3)(0f,1f,0f);
+		render.Position =Vector!(float,3)(-1f,0f,0f);
+		stage.CurrentScene.AddProp( render );
+	}
+
+	
 	stage.Start();
 }
 class Space

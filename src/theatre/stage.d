@@ -68,8 +68,8 @@ private:
 public: /+----    Functions    ----+/
 	this( SDL_Window* window, SDL_GLContext glcontext, int width, int height )
 	{
-		this.OnStart ={};
-		this.OnQuit ={};
+		this.OnStart ={}; this.OnQuit ={};
+		//this.OnKeyDown =(k)=>{return;}; this.OnKeyUp =(k)=>{return;};
 		this._window =window;
 		this._glContext =glcontext;
 		this._width =width;
@@ -123,11 +123,13 @@ public: /+----    Functions    ----+/
 		
 		debug writefln("Texture Uniform: %d\nColour Uniform: %d\nMatrix Uniform: %d\n",
 			_texid, _colourLocation, _pvmLocation );
+		//_renderThrd =new Thread(&RenderLoop);
 		this.OnStart();
 		this._isRunning =true;
 		UpdateLoop();
 	}
 	void delegate() OnStart, OnQuit;
+	void delegate(SDL_Keycode) OnKeyDown, OnKeyUp;
 private:
 	uint _texid;
 	void RenderLoop()
@@ -141,18 +143,21 @@ private:
 			{ render.Render(_currentScene.Perspective, _pvmLocation, _colourLocation); }
 		
 		SDL_GL_SwapWindow( _window );
+		Thread.sleep(dur!"msecs"(20));
 	}
 	void ParseKey( SDL_KeyboardEvent evnt )
 	{
-		if( evnt.state == SDL_PRESSED && evnt.keysym.sym == SDLK_ESCAPE )
-			{ _isRunning =false; }
+		if( evnt.type == SDL_KEYDOWN )
+			{ OnKeyDown(evnt.keysym.sym); }
+		else
+			{ OnKeyUp(evnt.keysym.sym); }
 	}
 	void UpdateLoop()
 	{
 		SDL_Event windowEvent;
 		while( _isRunning )
 		{
-			if( SDL_PollEvent(&windowEvent) )
+			while( SDL_PollEvent(&windowEvent) != 0 )
 			{
 				switch( windowEvent.type )
 				{
@@ -167,12 +172,12 @@ private:
 						break;
 				}
 			}
+			RenderLoop();
 			debug
 			{
 				auto error =glGetError();
 				if( error ){ writefln("OPENGL ERROR CODE %d", error); }
 			}
-			RenderLoop();
 			Thread.sleep(dur!"msecs"(20));
 		}
 	}

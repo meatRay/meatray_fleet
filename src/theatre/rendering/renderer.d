@@ -13,6 +13,7 @@ interface IRenderable
 }
 class Render
 {
+	public bool Visible =true;
 	public Vector!(float,3) Colour;
 	public this()
 		{ Position =vec3(0f,0f,0f); }
@@ -34,11 +35,14 @@ class Render
 	}
 	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
-		_texture.BindBuffer();
-		glBindVertexArray( _objectBuffer );
-		glUniform3fv( _colourUniform, 1, Colour.value_ptr );
-		pv =pv *mat4.translation( Position );
-		glUniformMatrix4fv( _transformUniform, 1, GL_TRUE, pv.value_ptr);
-		glDrawArrays( GL_TRIANGLES, 0, _shape.Points );
+		if( Visible )
+		{
+			_texture.BindBuffer();
+			glBindVertexArray( _objectBuffer );
+			glUniform3fv( _colourUniform, 1, Colour.value_ptr );
+			pv =pv *mat4.translation( Position );
+			glUniformMatrix4fv( _transformUniform, 1, GL_TRUE, pv.value_ptr);
+			glDrawArrays( GL_TRIANGLES, 0, _shape.Points );
+		}
 	}
 }

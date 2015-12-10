@@ -1,6 +1,6 @@
-module fleet.theatre.stage;
+module theatre.stage;
 
-import fleet.theatre.rendering;
+import theatre.rendering;
 
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;

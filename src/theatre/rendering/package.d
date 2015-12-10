@@ -1,5 +1,5 @@
-module fleet.theatre.rendering;
+module theatre.rendering;
 
-public import fleet.theatre.rendering.geometry;
-public import fleet.theatre.rendering.renderer;
-public import fleet.theatre.rendering.textures;
+public import theatre.rendering.geometry;
+public import theatre.rendering.renderer;
+public import theatre.rendering.textures;

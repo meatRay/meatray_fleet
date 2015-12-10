@@ -1,4 +1,4 @@
-module fleet.theatre.rendering.geometry;
+module theatre.rendering.geometry;
 
 import derelict.opengl3.gl3;
 import gl3n.linalg;

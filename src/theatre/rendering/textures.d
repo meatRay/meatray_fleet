@@ -1,4 +1,4 @@
-module fleet.theatre.rendering.textures;
+module theatre.rendering.textures;
 
 import derelict.sdl2.image;
 import derelict.sdl2.sdl;

@@ -1,7 +1,7 @@
-module fleet.theatre.rendering.renderer;
+module theatre.rendering.renderer;
 
-import fleet.theatre.rendering.textures;
-import fleet.theatre.rendering.geometry;
+import theatre.rendering.textures;
+import theatre.rendering.geometry;
 
 import derelict.opengl3.gl3;
 import gl3n.linalg;

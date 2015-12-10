@@ -1,7 +1,7 @@
 module fleet.space;
 
-import fleet.theatre.stage;
-import fleet.theatre.rendering;
+import theatre.stage;
+import theatre.rendering;
 
 import std.container;
 debug import std.stdio;

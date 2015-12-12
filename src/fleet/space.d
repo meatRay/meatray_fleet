@@ -1,6 +1,7 @@
 module fleet.space;
 
-import theatre.stage;
+import theatre;
+import theatre.input;
 import theatre.rendering;
 
 import std.container;
@@ -26,28 +27,19 @@ void main()
 	render.Position =Vector!(float,3)(-1f,0f,0f);
 	stage.CurrentScene.AddProp( render );
 		
-	stage.OnKeyDown =(k)
+	stage.OnUpdate =()
 	{ /+Key is lifted from SDLK Currently+/
 		/+Bundle into 'Keyboard' owned by Stage.  Check Key states instead.+/
-		switch( k )
-		{
-			case 'w':
-				mc.Position.y +=0.01f;
-				break;
-			case 'a':
-				mc.Position.x -=0.01f;
-				break;
-			case 's':
-				mc.Position.y -=0.01f;
-				break;
-			case 'd':
-				mc.Position.x +=0.01f;
-				break;
-			default:
-				stage.Quit();
-				break;
-		}
+		if ( stage.Cur_Keyboard.keyDown(Key.W) )
+		{	mc.Position.y +=0.01f; }
+		else if ( stage.Cur_Keyboard.keyDown(Key.S) )
+		{mc.Position.y -=0.01f; }
+		if ( stage.Cur_Keyboard.keyDown(Key.A) )
+		{	mc.Position.x -=0.01f; }
+		else if ( stage.Cur_Keyboard.keyDown(Key.D) )
+		{mc.Position.x +=0.01f; }
 	};
+	stage.OnKeyDown =(k){};
 	stage.OnKeyUp =(k){};
 	
 	stage.Start();

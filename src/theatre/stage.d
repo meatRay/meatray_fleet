@@ -1,6 +1,8 @@
 module theatre.stage;
 
+import theatre.scene;
 import theatre.rendering;
+import theatre.input;
 
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
@@ -8,9 +10,7 @@ import derelict.opengl3.gl3;
 import gl3n.linalg;
 
 import core.thread, core.time;
-import std.container;
 import std.string;
-import std.range, std.algorithm;
 
 debug import std.stdio;
 
@@ -51,6 +51,7 @@ public: /+----    Variables    ----+/
 	@property float AspectRatio(){ return this._aspectRatio; }
 	@property Scene CurrentScene(){ return this._currentScene; }
 	Scene SetScene(Scene scene){ return this._currentScene =scene; }
+	Keyboard Cur_Keyboard;
 	
 private:
 	Scene _currentScene;
@@ -68,6 +69,7 @@ private:
 public: /+----    Functions    ----+/
 	this( SDL_Window* window, SDL_GLContext glcontext, int width, int height )
 	{
+		this.Cur_Keyboard =new Keyboard();
 		this.OnStart ={}; this.OnQuit ={};
 		//this.OnKeyDown =(k)=>{return;}; this.OnKeyUp =(k)=>{return;};
 		this._window =window;
@@ -128,7 +130,7 @@ public: /+----    Functions    ----+/
 		this._isRunning =true;
 		UpdateLoop();
 	}
-	void delegate() OnStart, OnQuit;
+	void delegate() OnStart, OnQuit, OnUpdate;
 	void delegate(SDL_Keycode) OnKeyDown, OnKeyUp;
 private:
 	uint _texid;
@@ -172,6 +174,7 @@ private:
 						break;
 				}
 			}
+			OnUpdate();
 			RenderLoop();
 			debug
 			{
@@ -190,42 +193,4 @@ private uint LoadShader( uint shaderType, const char* shader )
 		glShaderSource( shader_buf, 1, &shader, null );
 		glCompileShader( shader_buf );
 		return shader_buf;
-}
-
-/++ Contains Collections of Items to be rendered ++/
-class Scene
-{
-	enum View{ None, Ortho };
-	private View _view;
-	@property public View CurrentView(){ return this._view; }
-	public this( View view_type, float width, float height )
-	{
-		this.Location =vec3(0f,0f,0f);
-		SetView( view_type, width, height );
-	}
-	public void SetView( View view_type, float width, float height )
-	{
-		_view =view_type;
-		switch( view_type )
-		{
-			case View.Ortho:
-				Perspective =mat4.orthographic( width /-2f, width /2f, height /-2f, height /2f, 0f, 1f );
-				return;			
-			default:
-				Perspective =mat4.identity;
-				return;
-		}
-	}
-	package mat4 Perspective;
-	package vec3 Location;
-	/+ Stage Reference? +/
-	package DList!Render Props;
-	public void AddProp( IRenderable renderable )
-		{ this.Props.insert( renderable.Renderer ); }
-	public void AddProp( Render render )
-		{ this.Props.insert( render ); }
-	public void RemoveProp( IRenderable renderable )
-		{ this.Props.linearRemove( Props[].find(renderable.Renderer).take(1) ); }
-	public void RemoveProp( Render render )
-		{ this.Props.linearRemove( Props[].find(render).take(1) ); }
 }

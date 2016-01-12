@@ -7,6 +7,8 @@ import derelict.opengl3.gl3;
 import gl3n.linalg;
 public import gl3n.linalg: Vector;
 
+debug import std.stdio;
+
 interface IRenderable
 {
 	@property public Render Renderer();
@@ -29,10 +31,13 @@ class Render
 		glBindVertexArray( _objectBuffer );
 		glEnableVertexAttribArray( 0 );
 		glEnableVertexAttribArray( 1 );
+		
+		debug writefln("_objectBuffer: %d", _objectBuffer );
 		glBindBuffer( GL_ARRAY_BUFFER, _objectBuffer );
 		shape.SetAttributes();
 		
 	}
+	/+Pass mat4 as pointer?  Kind of dangerous.+/
 	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
 		if( Visible )

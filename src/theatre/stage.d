@@ -71,6 +71,8 @@ public: /+----    Functions    ----+/
 	{
 		this.Cur_Keyboard =new Keyboard();
 		this.OnStart ={}; this.OnQuit ={};
+		/+Neither of these work??+/
+		//this.OnKeyDown =(k)=>{};
 		//this.OnKeyDown =(k)=>{return;}; this.OnKeyUp =(k)=>{return;};
 		this._window =window;
 		this._glContext =glcontext;
@@ -136,7 +138,7 @@ private:
 	uint _texid;
 	void RenderLoop()
 	{
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glClear( GL_COLOR_BUFFER_BIT /+ | GL_DEPTH_BUFFER_BIT +/);
 		glUseProgram( shader );
 		glActiveTexture(GL_TEXTURE0);
 		glUniform1i(_texid, 0);

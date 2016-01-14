@@ -100,10 +100,5 @@ class Room :IRenderable
 {
 	public Render MyRender;
 	@property public Render Renderer(){ return MyRender; }
-	public class Blueprint
-	{
-		
-	}
-	public Blueprint Design;
 	public Room Up, Down, Left, Right;
 }

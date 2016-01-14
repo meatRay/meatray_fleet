@@ -8,7 +8,7 @@ import std.algorithm;
 
 class Ship
 {
-	public Chunk[] Chunks;
+	public Chunk Chunks;
 }
 
 Ship FromFormatHelper( string formatted_input )
@@ -55,14 +55,14 @@ Ship FromFormatHelper( string formatted_input )
 		//	{ break; }
 	}
 	Ship ship =new Ship();
-	ship.Chunks =[ new Chunk() ];
+	ship.Chunks =/+[+/ new Chunk() /+]+/;
 	Room[] fin_rooms =new Room[ rooms.map!( r => r.count!"a !is null" ).sum() ];
 	int at;
 	foreach( ray; rooms )
 		foreach( room; ray )
 			if( room !is null )
 				{ fin_rooms[at++] =room; }
-	ship.Chunks[0].Rooms =fin_rooms;
+	ship.Chunks/+[0]+/.Rooms =fin_rooms;
 	return ship;
 }
 

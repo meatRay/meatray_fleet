@@ -12,12 +12,10 @@ class Ship
 	const float SPEED =4f;
 	public SList!(Vector!(float,2)) Path;
 	public Chunk Chunks;
-	bool dun=false;
 	public void Update( float delta_time )
 	{
 		if( !Path.empty )
 		{
-			if( !dun){ dun =true; debug writeln(vec3(((Path.front -Chunks.Position.xy) *delta_time),0).as_string);}
 			Chunks.Position += vec3(((Path.front -Chunks.Position.xy).normalized *delta_time *SPEED),0);
 			if( (Path.front -Chunks.Position.xy).magnitude < 0.01 *SPEED )
 				{

@@ -14,7 +14,7 @@ import std.string;
 
 debug import std.stdio;
 
-public static Stage CreateStage()
+public static Stage CreateStage( string stage_name ="meatray_Theatre", int width =800, int height =640 )
 {
 	import std.exception :enforce;
 	DerelictGL3.load();
@@ -28,7 +28,7 @@ public static Stage CreateStage()
 	/+ Create static SDL rendering threads for instantiated GL Render contexts? +/
 	enforce( SDL_Init( SDL_INIT_VIDEO ) >=0, "Error initializing SDL" );
 	enforce(
-		(window =SDL_CreateWindow("meatray_fleet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 640, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
+		(window =SDL_CreateWindow(stage_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
 		!is null,
 		"SDL ->OpenGL display creation failed!"
 	);
@@ -40,7 +40,7 @@ public static Stage CreateStage()
 	
 	auto versn =DerelictGL3.reload();
 	debug writefln( "Loaded GL version %d", versn );
-	return new Stage( window, glContext, 640, 480 );
+	return new Stage( window, glContext, width, height );
 }
 
 /++ Definitions on how to Render Scene Objects ++/

@@ -15,7 +15,7 @@ debug import std.math;
 
 void main()
 {
-	Stage stage =CreateStage();
+	Stage stage =CreateStage("theatre_example", 800, 640);
 	stage.SetScene( new Scene(Scene.View.Ortho, 40f, 40f/+10f *stage.AspectRatio+/ ) );
 	
 	auto ship =FromFormatHelper("#####\n#####\n# # #\n  #\n ###\n ###\n");

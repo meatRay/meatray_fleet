@@ -5,10 +5,27 @@ import gl3n.linalg;
 
 debug import std.stdio;
 import std.algorithm;
+import std.container: SList;
 
 class Ship
 {
+	const float SPEED =4f;
+	public SList!(Vector!(float,2)) Path;
 	public Chunk Chunks;
+	bool dun=false;
+	public void Update( float delta_time )
+	{
+		if( !Path.empty )
+		{
+			if( !dun){ dun =true; debug writeln(vec3(((Path.front -Chunks.Position.xy) *delta_time),0).as_string);}
+			Chunks.Position += vec3(((Path.front -Chunks.Position.xy).normalized *delta_time *SPEED),0);
+			if( (Path.front -Chunks.Position.xy).magnitude < 0.01 *SPEED )
+				{
+				debug writefln("Arrived within range, magnitude %f", (Path.front -Chunks.Position.xy).magnitude);
+				debug writefln("Position %s", Chunks.Position.as_string);
+				Path.removeFront(1); }
+		}
+	}
 }
 
 Ship FromFormatHelper( string formatted_input )
@@ -45,7 +62,7 @@ Ship FromFormatHelper( string formatted_input )
 				rooms[x][y].MyRender =new Render();
 				rooms[x][y].MyRender.LoadObject( shape, tex );
 				rooms[x][y].MyRender.Colour =Vector!(float,3)(1f /x,1f /y,0f);
-				rooms[x][y].MyRender.Position =Vector!(float,3)(x,y,0f);
+				rooms[x][y].MyRender.Position =Vector!(float,3)(x -2.5,y -3,0f);
 				goto default;
 			default:
 				++x;
@@ -78,10 +95,11 @@ class Chunk :IRenderable
 	private ChunkRenders _renders;
 	@property public Render Renderer(){ return this._renders; }
 	public vec3 Position;
+	public float Z_Rotation =0f;
 	/+More memory expensive than just storing the Root.+/
 	public Room[] Rooms;
 }
-class ChunkRenders :Render
+class ChunkRenders :RotateRender
 {
 	/+Circular References never did anything wrong, right?+/
 	public Chunk InsideChunk;
@@ -90,6 +108,7 @@ class ChunkRenders :Render
 	
 	override public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
+		pv.rotatez(InsideChunk.Z_Rotation);
 		pv =pv *mat4.translation( InsideChunk.Position );
 		foreach( Room room; InsideChunk.Rooms )
 			{ room.Renderer.Render(pv, _transformUniform, _colourUniform); }

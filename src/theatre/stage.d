@@ -28,7 +28,7 @@ public static Stage CreateStage()
 	/+ Create static SDL rendering threads for instantiated GL Render contexts? +/
 	enforce( SDL_Init( SDL_INIT_VIDEO ) >=0, "Error initializing SDL" );
 	enforce(
-		(window =SDL_CreateWindow("meatray_fleet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
+		(window =SDL_CreateWindow("meatray_fleet", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 640, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
 		!is null,
 		"SDL ->OpenGL display creation failed!"
 	);
@@ -52,6 +52,7 @@ public: /+----    Variables    ----+/
 	@property Scene CurrentScene(){ return this._currentScene; }
 	Scene SetScene(Scene scene){ return this._currentScene =scene; }
 	Keyboard Cur_Keyboard;
+	long msecs_frame =20; /+TODO Pretty up!+/
 	
 private:
 	Scene _currentScene;
@@ -183,7 +184,7 @@ private:
 				auto error =glGetError();
 				if( error ){ writefln("OPENGL ERROR CODE %d", error); }
 			}
-			Thread.sleep(dur!"msecs"(20));
+			Thread.sleep(dur!"msecs"(msecs_frame));
 		}
 	}
 	/+ networkLoop? +/

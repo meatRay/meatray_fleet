@@ -10,7 +10,7 @@ import std.container: SList;
 
 class Ship
 {
-	const float SPEED =8f;
+	const float SPEED =10f;
 	public SList!(Vector!(float,2)) Path;
 	public Chunk Chunks;
 	float tick=1f;
@@ -19,18 +19,40 @@ class Ship
 		if( !Path.empty )
 		{
 			auto delta =Path.front -Chunks.Position.xy;
+			
 			float ang =(atan2( delta.y, delta.x ) -PI_2);
-			ang =fmod( ang, (2f *PI) );
+			float a2 =ang -(2f *PI);
+			float a3 =ang +(2f *PI);
+			if( tick >= 0.4f )
+			{
+				debug writefln( "%f,%f,%f", a2, ang, a3 );
+			}
+			
+			/+Find the closest 'wraparound angle' so we're not always bobbing between +1 and -1.
+			 +TODO: find neater function to do for us+/
+			if( abs(a2 -Chunks.Z_Rotation) < abs(ang -Chunks.Z_Rotation) )
+			{
+				if( abs(a2 -Chunks.Z_Rotation) < abs(a3 -Chunks.Z_Rotation) )
+					{ ang =a2; }
+				else if( abs(a3 -Chunks.Z_Rotation) < abs(a2 -Chunks.Z_Rotation) )
+					{ ang =a3; }
+			}
+			else if ( abs(a3 -Chunks.Z_Rotation) < abs(ang -Chunks.Z_Rotation) )
+				{ ang =a3; }
+				
+				
+			float n_speed =SPEED /(1f +abs(ang -Chunks.Z_Rotation));
+						
+			if( tick >= 0.4f )
+			{
+				debug writeln(ang);
+				debug writeln(1f /n_speed);
+				tick =0f;
+			}
 			Chunks.Z_Rotation +=(ang -Chunks.Z_Rotation) *delta_time;
 			//Chunks.Z_Rotation +=0.01;
 			tick +=delta_time;
-			if( tick >= 0.4f )
-			{
-				debug writeln( ang );
-				debug writeln(1f /(1f +abs(ang -Chunks.Z_Rotation)));
-				tick =0f;
-			}
-			float n_speed =SPEED /(1f +abs(ang -Chunks.Z_Rotation));
+
 			//Chunks.Z_Rotation +=0.01f;
 			//Chunks.Position += vec3(((Path.front -Chunks.Position.xy).normalized *delta_time *SPEED),0);
 			if( abs( ang -Chunks.Z_Rotation ) < PI_2 )
@@ -38,7 +60,7 @@ class Ship
 				Chunks.Position.y +=cos( Chunks.Z_Rotation ) *delta_time *n_speed;
 				Chunks.Position.x +=sin( -Chunks.Z_Rotation ) *delta_time *n_speed;
 			}
-			if( (Path.front -Chunks.Position.xy).magnitude < SPEED )
+			if( (Path.front -Chunks.Position.xy).magnitude < (SPEED /2f) /n_speed )
 				{
 				debug writefln("Arrived within range, magnitude %f", (Path.front -Chunks.Position.xy).magnitude);
 				debug writefln("Position %s", Chunks.Position.as_string);

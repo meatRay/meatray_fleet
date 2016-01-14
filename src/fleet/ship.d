@@ -4,20 +4,41 @@ import theatre.rendering;
 import gl3n.linalg;
 
 debug import std.stdio;
+import std.math;
 import std.algorithm;
 import std.container: SList;
 
 class Ship
 {
-	const float SPEED =4f;
+	const float SPEED =8f;
 	public SList!(Vector!(float,2)) Path;
 	public Chunk Chunks;
+	float tick=1f;
 	public void Update( float delta_time )
 	{
 		if( !Path.empty )
 		{
-			Chunks.Position += vec3(((Path.front -Chunks.Position.xy).normalized *delta_time *SPEED),0);
-			if( (Path.front -Chunks.Position.xy).magnitude < 0.01 *SPEED )
+			auto delta =Path.front -Chunks.Position.xy;
+			float ang =(atan2( delta.y, delta.x ) -PI_2);
+			ang =fmod( ang, (2f *PI) );
+			Chunks.Z_Rotation +=(ang -Chunks.Z_Rotation) *delta_time;
+			//Chunks.Z_Rotation +=0.01;
+			tick +=delta_time;
+			if( tick >= 0.4f )
+			{
+				debug writeln( ang );
+				debug writeln(1f /(1f +abs(ang -Chunks.Z_Rotation)));
+				tick =0f;
+			}
+			float n_speed =SPEED /(1f +abs(ang -Chunks.Z_Rotation));
+			//Chunks.Z_Rotation +=0.01f;
+			//Chunks.Position += vec3(((Path.front -Chunks.Position.xy).normalized *delta_time *SPEED),0);
+			if( abs( ang -Chunks.Z_Rotation ) < PI_2 )
+			{
+				Chunks.Position.y +=cos( Chunks.Z_Rotation ) *delta_time *n_speed;
+				Chunks.Position.x +=sin( -Chunks.Z_Rotation ) *delta_time *n_speed;
+			}
+			if( (Path.front -Chunks.Position.xy).magnitude < SPEED )
 				{
 				debug writefln("Arrived within range, magnitude %f", (Path.front -Chunks.Position.xy).magnitude);
 				debug writefln("Position %s", Chunks.Position.as_string);
@@ -106,8 +127,8 @@ class ChunkRenders :RotateRender
 	
 	override public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
-		pv.rotatez(InsideChunk.Z_Rotation);
 		pv =pv *mat4.translation( InsideChunk.Position );
+		pv =pv *mat4.zrotation(InsideChunk.Z_Rotation);
 		foreach( Room room; InsideChunk.Rooms )
 			{ room.Renderer.Render(pv, _transformUniform, _colourUniform); }
 	}

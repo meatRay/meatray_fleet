@@ -16,7 +16,7 @@ debug import std.math;
 void main()
 {
 	Stage stage =CreateStage();
-	stage.SetScene( new Scene(Scene.View.Ortho, 10f, 10f/+10f *stage.AspectRatio+/ ) );
+	stage.SetScene( new Scene(Scene.View.Ortho, 40f, 40f/+10f *stage.AspectRatio+/ ) );
 	
 	auto ship =FromFormatHelper("#####\n#####\n# # #\n  #\n ###\n ###\n");
 	stage.CurrentScene.AddProp( ship.Chunks/+[0]+/ );
@@ -32,12 +32,9 @@ void main()
 	};
 	stage.OnKeyUp =(k){};
 
-	ship.Path.insert( vec2(-1f, -1f) );
-	ship.Path.insert( vec2(0f, 2f) );
-	ship.Path.insert( vec2(1f, 1f) );
-
-
-	
+	ship.Path.insert( vec2(-8f, 3f) );
+	ship.Path.insert( vec2(-10f, -10f) );
+	ship.Path.insert( vec2(10f, -10f) );	
 	
 	debug
 	{

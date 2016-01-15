@@ -7,6 +7,7 @@ import theatre.input;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 import derelict.opengl3.gl3;
+
 import gl3n.linalg;
 
 import core.thread, core.time;
@@ -124,6 +125,10 @@ public: /+----    Functions    ----+/
 		glAttachShader( shader, vertex_shader );
 		glAttachShader( shader, fragment_shader );
 		glLinkProgram( shader );
+		
+		glEnable (GL_BLEND);
+		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		
 		this._pvmLocation =glGetUniformLocation( shader, "pvm" );
 		this._colourLocation =glGetUniformLocation( shader, "model_colour" );
 		

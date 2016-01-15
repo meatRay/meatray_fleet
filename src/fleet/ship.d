@@ -8,16 +8,24 @@ import std.math;
 import std.algorithm;
 import std.container: SList;
 
-class Ship
+class Ship :IRenderer
 {
-	const float TURNS =1f;
-	const float SPEED =10f;
+	const float TURNS =0.5f *PI;
+	const float SPEED =8f;
 	public SList!(Vector!(float,2)) Path;
+	public SList!IRenderer Path_Debug_Render;
 	public Chunk Chunks;
 	float tick=1f;
+	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
+	{
+		foreach( node; Path_Debug_Render )
+		{
+			node.Render(pv, _transformUniform, _colourUniform);
+		}
+		Chunks.Renderer.Render(pv, _transformUniform, _colourUniform);
+	}
 	public void Update( float delta_time )
 	{
-		Chunks.Z_Rotation +=delta_time *PI;
 		if( !Path.empty )
 		{
 			auto delta =Path.front -Chunks.Position.xy;
@@ -54,7 +62,7 @@ class Ship
 				debug writeln((SPEED /2f) /n_speed);
 				tick =0f;
 			}
-			//Chunks.Z_Rotation +=(ang -Chunks.Z_Rotation) *delta_time;
+			Chunks.Z_Rotation +=(ang -Chunks.Z_Rotation) *delta_time *TURNS;
 			//Chunks.Z_Rotation +=0.01;
 			tick +=delta_time;
 
@@ -66,10 +74,12 @@ class Ship
 				Chunks.Position.x +=sin( -Chunks.Z_Rotation ) *delta_time *n_speed;
 			}
 			if( (Path.front -Chunks.Position.xy).magnitude < (SPEED /2f) /n_speed )
-				{
+			{
 				debug writefln("Arrived within range, magnitude %f", (Path.front -Chunks.Position.xy).magnitude);
 				debug writefln("Position %s", Chunks.Position.as_string);
-				Path.removeFront(1); }
+				Path.removeFront(1); 
+				Path_Debug_Render.removeFront(1);
+			}
 		}
 	}
 }

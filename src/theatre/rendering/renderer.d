@@ -11,12 +11,16 @@ debug import std.stdio;
 
 interface IRenderable
 {
-	@property public Render Renderer();
+	@property public IRenderer Renderer();
 }
-class Render
+interface IRenderer
+{
+	public void Render( mat4 pv, int _transformUniform ,int _colourUniform );
+}
+class Render :IRenderer
 {
 	public bool Visible =true;
-	public Vector!(float,3) Colour;
+	public Vector!(float,3) Colour =vec3(1f,1f,1f);
 	public this()
 		{ Position =vec3(0f,0f,0f); }
 	public vec3 Position;
@@ -31,11 +35,9 @@ class Render
 		glBindVertexArray( _objectBuffer );
 		glEnableVertexAttribArray( 0 );
 		glEnableVertexAttribArray( 1 );
-		
 		debug writefln("_objectBuffer: %d", _objectBuffer );
-		glBindBuffer( GL_ARRAY_BUFFER, _objectBuffer );
+		//glBindBuffer( GL_ARRAY_BUFFER, _objectBuffer );
 		shape.SetAttributes();
-		
 	}
 	/+Pass mat4 as pointer?  Kind of dangerous.+/
 	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )

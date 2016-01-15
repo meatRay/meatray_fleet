@@ -34,13 +34,13 @@ class Scene
 	package mat4 Perspective;
 	package vec3 Location;
 	/+ Stage Reference? +/
-	package DList!Render Props;
+	package DList!IRenderer Props;
 	public void AddProp( IRenderable renderable )
 		{ this.Props.insert( renderable.Renderer ); }
-	public void AddProp( Render render )
+	public void AddProp( IRenderer render )
 		{ this.Props.insert( render ); }
 	public void RemoveProp( IRenderable renderable )
 		{ this.Props.linearRemove( Props[].find(renderable.Renderer).take(1) ); }
-	public void RemoveProp( Render render )
+	public void RemoveProp( IRenderer render )
 		{ this.Props.linearRemove( Props[].find(render).take(1) ); }
 }

@@ -23,6 +23,11 @@ class Render :IRenderer
 	public Vector!(float,3) Colour =vec3(1f,1f,1f);
 	public this()
 		{ Position =vec3(0f,0f,0f); }
+	~this()
+	{
+		glDeleteVertexArrays(1, &_objectBuffer);
+		debug writeln("Render freed.");
+	}
 	public vec3 Position;
 	private uint _objectBuffer;
 	private Shape _shape;

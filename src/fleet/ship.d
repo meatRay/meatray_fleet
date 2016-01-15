@@ -68,7 +68,7 @@ class Ship :IRenderer
 
 			//Chunks.Z_Rotation +=0.01f;
 			//Chunks.Position += vec3(((Path.front -Chunks.Position.xy).normalized *delta_time *SPEED),0);
-			if( abs( ang -Chunks.Z_Rotation ) < PI_2 )
+			if( abs( ang -Chunks.Z_Rotation ) < PI )
 			{
 				Chunks.Position.y +=cos( Chunks.Z_Rotation ) *delta_time *n_speed;
 				Chunks.Position.x +=sin( -Chunks.Z_Rotation ) *delta_time *n_speed;

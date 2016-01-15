@@ -34,7 +34,6 @@ void main()
 	
 	float last_angle =float.nan;
 	vec2 last_path;
-	
 	stage.OnUpdate =(delta_time)
 	{ /+Key is lifted from SDLK Currently+/
 		ship.Update(stage.msecs_frame /1000f);
@@ -55,7 +54,7 @@ void main()
 			{
 				auto delta =last_path -vec_new;
 				float nangle =0f;
-				if( accum_tick > 0.4 || abs((nangle =atan2( delta.y, delta.x )) - last_angle) > 0.1f )
+				if( accum_tick > 0.4 || abs((nangle =atan2( delta.y, delta.x )) - last_angle) > 0.4f )
 				{
 					if( nangle != 0f )
 					writeln( "NANGLE "~nangle.stringof );

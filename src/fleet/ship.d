@@ -10,12 +10,14 @@ import std.container: SList;
 
 class Ship
 {
+	const float TURNS =1f;
 	const float SPEED =10f;
 	public SList!(Vector!(float,2)) Path;
 	public Chunk Chunks;
 	float tick=1f;
 	public void Update( float delta_time )
 	{
+		Chunks.Z_Rotation +=delta_time *PI;
 		if( !Path.empty )
 		{
 			auto delta =Path.front -Chunks.Position.xy;
@@ -25,6 +27,9 @@ class Ship
 			float a3 =ang +(2f *PI);
 			if( tick >= 0.4f )
 			{
+				/+Doesn't happen often, but take this out of debug ticks+/
+				Chunks.Z_Rotation =fmod(Chunks.Z_Rotation, PI *2f);
+				
 				debug writefln( "%f,%f,%f", a2, ang, a3 );
 			}
 			
@@ -46,10 +51,10 @@ class Ship
 			if( tick >= 0.4f )
 			{
 				debug writeln(ang);
-				debug writeln(1f /n_speed);
+				debug writeln((SPEED /2f) /n_speed);
 				tick =0f;
 			}
-			Chunks.Z_Rotation +=(ang -Chunks.Z_Rotation) *delta_time;
+			//Chunks.Z_Rotation +=(ang -Chunks.Z_Rotation) *delta_time;
 			//Chunks.Z_Rotation +=0.01;
 			tick +=delta_time;
 

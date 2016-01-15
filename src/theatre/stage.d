@@ -14,7 +14,7 @@ import std.string;
 
 debug import std.stdio;
 
-public static Stage CreateStage( string stage_name ="meatray_Theatre", int width =800, int height =640 )
+public static Stage CreateStage( const char* stage_name ="meatray_Theatre", int width =800, int height =640 )
 {
 	import std.exception :enforce;
 	DerelictGL3.load();
@@ -52,6 +52,7 @@ public: /+----    Variables    ----+/
 	@property Scene CurrentScene(){ return this._currentScene; }
 	Scene SetScene(Scene scene){ return this._currentScene =scene; }
 	Keyboard Cur_Keyboard;
+	Mouse Cur_Mouse;
 	long msecs_frame =20; /+TODO Pretty up!+/
 	
 private:
@@ -70,8 +71,10 @@ private:
 public: /+----    Functions    ----+/
 	this( SDL_Window* window, SDL_GLContext glcontext, int width, int height )
 	{
+		this.Cur_Mouse =new Mouse();
 		this.Cur_Keyboard =new Keyboard();
 		this.OnStart ={}; this.OnQuit ={};
+		//this.OnUpdate =d=>{};
 		/+Neither of these work??+/
 		//this.OnKeyDown =(k)=>{};
 		//this.OnKeyDown =(k)=>{return;}; this.OnKeyUp =(k)=>{return;};
@@ -133,7 +136,8 @@ public: /+----    Functions    ----+/
 		this._isRunning =true;
 		UpdateLoop();
 	}
-	void delegate() OnStart, OnQuit, OnUpdate;
+	void delegate(float) OnUpdate;
+	void delegate() OnStart, OnQuit;
 	void delegate(SDL_Keycode) OnKeyDown, OnKeyUp;
 private:
 	uint _texid;
@@ -148,7 +152,7 @@ private:
 			{ render.Render(_currentScene.Perspective, _pvmLocation, _colourLocation); }
 		
 		SDL_GL_SwapWindow( _window );
-		Thread.sleep(dur!"msecs"(20));
+		//Thread.sleep(dur!"msecs"(20));
 	}
 	void ParseKey( SDL_KeyboardEvent evnt )
 	{
@@ -166,18 +170,30 @@ private:
 			{
 				switch( windowEvent.type )
 				{
-					case SDL_QUIT:
-						this._isRunning =false;
+					case SDL_MOUSEMOTION:
+						Cur_Mouse.UpdatePosition( windowEvent.motion.x, windowEvent.motion.y );
 						break;
 					case SDL_KEYDOWN:
+						OnKeyDown(windowEvent.key.keysym.sym);
+						break;
 					case SDL_KEYUP:
-						ParseKey( windowEvent.key );
+						OnKeyUp(windowEvent.key.keysym.sym);
+						break;
+					case SDL_MOUSEBUTTONDOWN:
+					/+Lazy lazy!!+/
+						windowEvent.button.button == SDL_BUTTON_LEFT ? Cur_Mouse.SetLeft(true) : Cur_Mouse.SetRight(true);
+						break;
+					case SDL_MOUSEBUTTONUP:
+						windowEvent.button.button == SDL_BUTTON_LEFT ? Cur_Mouse.SetLeft(false) : Cur_Mouse.SetRight(false);
+						break;
+					case SDL_QUIT:
+						this._isRunning =false;
 						break;
 					default:
 						break;
 				}
 			}
-			OnUpdate();
+			OnUpdate(msecs_frame);
 			RenderLoop();
 			debug
 			{

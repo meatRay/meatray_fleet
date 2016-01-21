@@ -47,7 +47,7 @@ void main()
 			);
 			if( last_angle is float.nan )
 			{
-				auto delta =ship.Chunks.Position.xy -vec_new;
+				auto delta =ship.Controller.Position.xy -vec_new;
 				last_angle =atan2( delta.y, delta.x );
 			}
 			else
@@ -73,7 +73,13 @@ void main()
 	};
 	stage.OnKeyDown =(k)
 	{
-		//debug ship.Chunks.Z_Rotation +=PI_4;
+		debug
+		{
+			auto rm =ship.Chunks[0].Rooms[0];
+			writefln("Removed Room X: %f, Y: %f", rm.Renderer.Position.x, rm.Renderer.Position.y);
+			ship.Chunks =DEBUG_FractureChunk( ship.Chunks[0].Rooms[0] );
+			DEBUG_ShipFindController( ship );
+		}
 	};
 	stage.OnKeyUp =(k){};
 
@@ -86,6 +92,8 @@ void main()
 		auto error =glGetError();
 		if( error ){ writefln("OPENGL ERROR CODE %d", error); }
 	}
+	
+	//DEBUG_ShipFindController(ship);
 	stage.Start();
 }
 class Space

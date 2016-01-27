@@ -11,13 +11,13 @@ import std.array;
 
 class Ship :IRenderer
 {
-	const float TURNS =0.5f *PI;
-	const float SPEED =8f;
-	public SList!(Vector!(float,2)) Path;
-	public SList!IRenderer Path_Debug_Render;
-	public Chunk[] Chunks;
-	public Chunk Controller;
-	float tick=1f;
+public: /+----    Variables    ----+/
+	 SList!(Vector!(float,2)) Path;
+	 SList!IRenderer Path_Debug_Render;
+	 Chunk[] Chunks;
+	 Chunk Controller;
+public: /+----    Functions    ----+/
+	
 	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
 		foreach( node; Path_Debug_Render )
@@ -29,6 +29,7 @@ class Ship :IRenderer
 			chunk.Renderer.Render(pv, _transformUniform, _colourUniform);
 		}
 	}
+	
 	public void Update( float delta_time )
 	{
 		if( !Path.empty )
@@ -38,7 +39,7 @@ class Ship :IRenderer
 			float ang =(atan2( delta.y, delta.x ) -PI_2);
 			float a2 =ang -(2f *PI);
 			float a3 =ang +(2f *PI);
-			if( tick >= 0.4f )
+			if( _tick >= 0.4f )
 			{
 				/+Doesn't happen often, but take this out of debug ticks+/
 				Controller.Z_Rotation =fmod(Controller.Z_Rotation, PI *2f);
@@ -60,14 +61,14 @@ class Ship :IRenderer
 				
 				
 			float n_speed =SPEED /(1f +abs(ang -Controller.Z_Rotation));					
-			if( tick >= 0.4f )
+			if( _tick >= 0.4f )
 			{
 				debug writeln(ang);
 				debug writeln((SPEED /2f) /n_speed);
-				tick =0f;
+				_tick =0f;
 			}
 			Controller.Z_Rotation +=(ang -Controller.Z_Rotation) *delta_time *TURNS;
-			tick +=delta_time;
+			_tick +=delta_time;
 
 			if( abs( ang -Controller.Z_Rotation ) < PI )
 			{
@@ -83,11 +84,17 @@ class Ship :IRenderer
 			}
 		}
 	}
+private: /+----    Variables    ----+/
+	const float TURNS =0.5f *PI;
+	const float SPEED =8f;
+	float _tick=1f;
 }
+
 void DEBUG_ShipFindController( Ship ship )
 {
 	ship.Controller =ship.Chunks[0];
 }
+
 Ship FromFormatHelper( string formatted_input )
 {
 	Room[][] rooms =new Room[][5];
@@ -99,16 +106,24 @@ Ship FromFormatHelper( string formatted_input )
 	auto tex =CreateTexture( "box.png" );
 	
 	int cnt_at =0;
+	Ship ship =new Ship();
+	ship.Chunks =[ new Chunk() ];
 	foreach( c; formatted_input )
 	{
 		debug writefln( "%d, %d", x, y );
+		if( c == '\n' )
+		{
+			y++; x = 0;
+			continue;
+		}
+		
+		rooms[x][y] =new Room();
 		switch( c )
 		{
-			case '\n':
-				x =0; ++y;
-				break;
+			case 'G':
+				ship.Chunks[0].Gyro = rooms[x][y];
+				goto case '#';
 			case '#':
-				rooms[x][y] =new Room();
 				rooms[x][y].Neighbours =new Room[4];
 				if( x > 0 && rooms[x-1][y] !is null )
 				{
@@ -132,8 +147,6 @@ Ship FromFormatHelper( string formatted_input )
 		//if( cnt_at++ == 3 )
 		//	{ break; }
 	}
-	Ship ship =new Ship();
-	ship.Chunks =[ new Chunk() ];
 	Room[] fin_rooms =new Room[ rooms.map!( r => r.count!"a !is null" ).sum() ];
 	int at;
 	foreach( ray; rooms )
@@ -145,22 +158,27 @@ Ship FromFormatHelper( string formatted_input )
 	return ship;
 }
 
-//Position Management
+
 class Chunk :IRenderable
 {
+public: /+----    Variables    ----+/
+	Room Engine, Gyro;
+	vec3 Position;
+	float Z_Rotation =0f;
+	Room[] Rooms;
+public: /+----    Functions    ----+/
+	
 	public this()
 	{
 		this._renders =new ChunkRenders();
 		this._renders.InsideChunk =this;
 		this.Position =vec3(0f,0f,0f);
 	}
-	private ChunkRenders _renders;
-	@property public Render Renderer(){ return this._renders; }
-	public vec3 Position;
-	public float Z_Rotation =0f;
-	/+More memory expensive than just storing the Root.+/
-	public Room[] Rooms;
+	@property Render Renderer(){ return this._renders; }
+private: /+----    Variables    ----+/
+	ChunkRenders _renders;
 }
+
 Chunk[] DEBUG_FractureChunk( Room removed )
 {
 	Chunk[] new_chunks =new Chunk[4];
@@ -174,14 +192,17 @@ Chunk[] DEBUG_FractureChunk( Room removed )
 	if( removed.Left !is null && !new_chunks.any!(c => c !is null && !c.Rooms.find(removed.Left).empty ) )
 		{ removed.Left.Right =null; }
 	foreach( nbr; removed.Neighbours )
-		if( nbr !is null )
-		{
-			new_chunks[at] =new Chunk();
-			new_chunks[at++].Rooms =array(DEBUG_CollectRooms( nbr ));
-		}
+	if( nbr !is null )
+	{
+		new_chunks[at] =new Chunk();
+		new_chunks[at].Rooms =array(DEBUG_CollectRooms( nbr ));
+		new_chunks[at].Gyro = new_chunks[at].Rooms.find!(r => r.Type == RoomType.Gyro ).front;
+		at++;
+	}
 	return new_chunks[0..at];
 }
-SList!Room DEBUG_CollectRooms( Room root, SList!Room rooms =SList!Room() ) /+ACCESS VIOLATION+/
+
+SList!Room DEBUG_CollectRooms( Room root, SList!Room rooms =SList!Room() )
 {
 	foreach( room; root.Neighbours )
 	{
@@ -193,27 +214,41 @@ SList!Room DEBUG_CollectRooms( Room root, SList!Room rooms =SList!Room() ) /+ACC
 	}
 	return rooms;
 }
+
 class ChunkRenders :RotateRender
 {
+public: /+----    Variables    ----+/
 	/+Circular References never did anything wrong, right?+/
 	public Chunk InsideChunk;
+	
+public: /+----    Functions    ----+/
 	
 	public this(){}
 	
 	override public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
 	{
-		pv =pv *mat4.translation( InsideChunk.Position );
+		auto pos = InsideChunk.Position;
+		if( InsideChunk.Gyro !is null )
+		{
+			pos += InsideChunk.Gyro.Renderer.Position; 
+		}
+		pv =pv *mat4.translation( pos );
 		pv =pv *mat4.zrotation(InsideChunk.Z_Rotation);
 		foreach( Room room; InsideChunk.Rooms )
 			{ room.Renderer.Render(pv, _transformUniform, _colourUniform); }
 	}
 }
 
+enum RoomType{ Blank, Gyro };
+
 class Room :IRenderable
 {
-	public Render MyRender;
+public: /+----    Variables    ----+/
+	RoomType Type;
+	Render MyRender;
+	Room[] Neighbours;
+public: /+----    Functions    ----+/
 	@property public Render Renderer(){ return MyRender; }
-	public Room[] Neighbours;
 	
 	@property Room Up(){return Neighbours[0];}
 	@property Room Right(){return Neighbours[1];}

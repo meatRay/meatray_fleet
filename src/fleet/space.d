@@ -11,7 +11,7 @@ debug import derelict.opengl3.gl3;
 
 import std.container;
 debug import std.stdio;
-debug import std.math;
+import std.math;
 
 vec2 WinToStage( vec2i mouse, vec2i win_bounds, vec2 stage_bounds, vec2 camera =vec2(0f,0f) )
 {
@@ -24,7 +24,7 @@ void main()
 	Stage stage =CreateStage("theatre_example", 800, 640);
 	stage.SetScene( new Scene(Scene.View.Ortho, 40f, 40f/+10f *stage.AspectRatio+/ ) );
 	
-	auto ship =FromFormatHelper("#####\n#####\n# # #\n  #\n ###\n ###\n");
+	auto ship =FromFormatHelper("#####\n##C##\n# # #\n  #\n #G#\n #E#\n");
 	stage.CurrentScene.AddProp( ship );
 	stage.msecs_frame =16;
 	
@@ -57,10 +57,10 @@ void main()
 				if( accum_tick > 0.4 || abs((nangle =atan2( delta.y, delta.x )) - last_angle) > 0.4f )
 				{
 					if( nangle != 0f )
-					writeln( "NANGLE "~nangle.stringof );
+					debug writeln( "NANGLE "~nangle.stringof );
 					last_angle =nangle;
 					last_path =vec_new;
-					writeln( vec_new.as_string );
+					debug writeln( vec_new.as_string );
 					auto dbg =new Render();
 					dbg.Position =vec3( vec_new, 0f );
 					dbg.LoadObject( path_shape,path_tex );
@@ -77,7 +77,7 @@ void main()
 		{
 			auto rm =ship.Chunks[0].Rooms[0];
 			writefln("Removed Room X: %f, Y: %f", rm.Renderer.Position.x, rm.Renderer.Position.y);
-			ship.Chunks =DEBUG_FractureChunk( ship.Chunks[0].Rooms[0] );
+			ship.Chunks =DEBUG_FractureChunk( ship.Chunks[0].Rooms[4] );
 			DEBUG_ShipFindController( ship );
 		}
 	};

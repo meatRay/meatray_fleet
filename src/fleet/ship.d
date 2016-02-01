@@ -16,6 +16,12 @@ public: /+----    Variables    ----+/
 	 SList!IRenderer Path_Debug_Render;
 	 Chunk[] Chunks;
 	 Chunk Controller;
+	 
+private:
+	const float TURNS =0.5f *PI;
+	const float SPEED =8f;
+	float _tick=1f;
+	
 public: /+----    Functions    ----+/
 	
 	public void Render( mat4 pv, int _transformUniform ,int _colourUniform )
@@ -84,10 +90,6 @@ public: /+----    Functions    ----+/
 			}
 		}
 	}
-private: /+----    Variables    ----+/
-	const float TURNS =0.5f *PI;
-	const float SPEED =8f;
-	float _tick=1f;
 }
 
 void DEBUG_ShipFindController( Ship ship )
@@ -113,39 +115,47 @@ Ship FromFormatHelper( string formatted_input )
 		debug writefln( "%d, %d", x, y );
 		if( c == '\n' )
 		{
-			y++; x = 0;
+			++y; x = 0;
+			continue;
+		}
+		else if( c == ' ' )
+		{
+			++x;
 			continue;
 		}
 		
 		rooms[x][y] =new Room();
+		rooms[x][y].Type = RoomType.Blank;
 		switch( c )
 		{
+			case 'E':
+			rooms[x][y].Type = RoomType.Engine;
+				ship.Chunks[0].Engine = rooms[x][y];
+				goto case '#';
 			case 'G':
+				rooms[x][y].Type = RoomType.Gyro;
 				ship.Chunks[0].Gyro = rooms[x][y];
 				goto case '#';
 			case '#':
-				rooms[x][y].Neighbours =new Room[4];
 				if( x > 0 && rooms[x-1][y] !is null )
 				{
-					rooms[x-1][y].Right =rooms[x][y];
-					rooms[x][y].Left =rooms[x-1][y];
+					rooms[x-1][y].Right = rooms[x][y];
+					rooms[x][y].Left = rooms[x-1][y];
 				}
 				if( y > 0 && rooms[x][y-1] !is null )
 				{
-					rooms[x][y-1].Down =rooms[x][y];
-					rooms[x][y].Up =rooms[x][y-1];
+					rooms[x][y-1].Down = rooms[x][y];
+					rooms[x][y].Up = rooms[x][y-1];
 				}
-				rooms[x][y].MyRender =new Render();
+				rooms[x][y].MyRender = new Render();
 				rooms[x][y].MyRender.LoadObject( shape, tex );
-				rooms[x][y].MyRender.Colour =Vector!(float,3)(1f /x,1f /y,0f);
-				rooms[x][y].MyRender.Position =Vector!(float,3)(x -2.5,y -3,0f);
+				rooms[x][y].MyRender.Colour = Vector!(float,3)(1f /x,1f /y,0f);
+				rooms[x][y].MyRender.Position = Vector!(float,3)(x -2.5,y -3,0f);
 				goto default;
 			default:
 				++x;
 				break;
 		}
-		//if( cnt_at++ == 3 )
-		//	{ break; }
 	}
 	Room[] fin_rooms =new Room[ rooms.map!( r => r.count!"a !is null" ).sum() ];
 	int at;
@@ -194,9 +204,11 @@ Chunk[] DEBUG_FractureChunk( Room removed )
 	foreach( nbr; removed.Neighbours )
 	if( nbr !is null )
 	{
-		new_chunks[at] =new Chunk();
-		new_chunks[at].Rooms =array(DEBUG_CollectRooms( nbr ));
+		new_chunks[at] = new Chunk();
+		new_chunks[at].Rooms = array(DEBUG_CollectRooms( nbr ));
 		new_chunks[at].Gyro = new_chunks[at].Rooms.find!(r => r.Type == RoomType.Gyro ).front;
+		/+This needs to be WAY more clever+/
+		//new_chunks[at].Position = 
 		at++;
 	}
 	return new_chunks[0..at];
@@ -230,7 +242,7 @@ public: /+----    Functions    ----+/
 		auto pos = InsideChunk.Position;
 		if( InsideChunk.Gyro !is null )
 		{
-			pos += InsideChunk.Gyro.Renderer.Position; 
+			//pos += InsideChunk.Gyro.Renderer.Position; 
 		}
 		pv =pv *mat4.translation( pos );
 		pv =pv *mat4.zrotation(InsideChunk.Z_Rotation);
@@ -239,24 +251,29 @@ public: /+----    Functions    ----+/
 	}
 }
 
-enum RoomType{ Blank, Gyro };
+enum RoomType{ Blank, Gyro, Engine };
 
 class Room :IRenderable
 {
 public: /+----    Variables    ----+/
 	RoomType Type;
 	Render MyRender;
-	Room[] Neighbours;
+	Room[4] Neighbours;
 public: /+----    Functions    ----+/
-	@property public Render Renderer(){ return MyRender; }
+	@property Render Renderer(){ return MyRender; }
+	string Log(/+Detail_Level+/)
+	{ return format(`[Room]
+  Neighbours: [%s,%s,%s,%s]
+  Type: %s
+  Render: %s`, Up, Right, Down, Left, Type, MyRender ); }
 	
 	@property Room Up(){return Neighbours[0];}
 	@property Room Right(){return Neighbours[1];}
 	@property Room Down(){return Neighbours[2];}
 	@property Room Left(){return Neighbours[3];}
 	
-	@property Room Up(Room up){return Neighbours[0] =up;}
-	@property Room Right(Room right){return Neighbours[1] =right;}
-	@property Room Down(Room down){return Neighbours[2] =down;}
-	@property Room Left(Room left){return Neighbours[3] =left;}
+	@property Room Up(Room up){return Neighbours[0] = up;}
+	@property Room Right(Room right){return Neighbours[1] = right;}
+	@property Room Down(Room down){return Neighbours[2] = down;}
+	@property Room Left(Room left){return Neighbours[3] = left;}
 }

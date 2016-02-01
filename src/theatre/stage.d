@@ -1,3 +1,4 @@
+/+++/
 module theatre.stage;
 
 import theatre.scene;
@@ -15,33 +16,38 @@ import std.string;
 
 debug import std.stdio;
 
-public static Stage CreateStage( const char* stage_name ="meatray_Theatre", int width =800, int height =640 )
+static this()
 {
-	import std.exception :enforce;
 	DerelictGL3.load();
 	DerelictSDL2.load();
 	DerelictSDL2Image.load();
-	
+}
+
+/++ Create a Stage and initialize an OpenGL 4.0 Context
+ + Throws: Detailed Exception upon SDL or OpenGL 4.0 initializing error.
+++/
+public static Stage CreateStage( const char* stage_name ="meatray_Theatre", int width =800, int height =640 )
+{
+	import std.exception : enforce;
 	SDL_Window* window;
-	SDL_GLContext glContext;
+	SDL_GLContext gl_context;
 	
-	debug writeln( "Initializing SDL /OpenGL3 Components" );
+debug writeln( "Initializing SDL /OpenGL3 Components" );
 	/+ Create static SDL rendering threads for instantiated GL Render contexts? +/
-	enforce( SDL_Init( SDL_INIT_VIDEO ) >=0, "Error initializing SDL" );
+	enforce( SDL_Init( SDL_INIT_VIDEO ) >= 0, "Error initializing SDL2 [ SDL_INIT_VIDEO ]" );
 	enforce(
 		(window =SDL_CreateWindow(stage_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
 		!is null,
-		"SDL ->OpenGL display creation failed!"
+		"SDL -> OpenGL display creation failed!"
 	);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 4 );
+	SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 0 );
 
-	enforce( (glContext =SDL_GL_CreateContext(window)) !is null, "OpenGL context creation failed!" );
-	
-	auto versn =DerelictGL3.reload();
-	debug writefln( "Loaded GL version %d", versn );
-	return new Stage( window, glContext, width, height );
+	enforce( (gl_context = SDL_GL_CreateContext(window)) !is null, "OpenGL context creation failed!" );
+	auto gl_version = DerelictGL3.reload();
+debug writefln( "Loaded GL version %d", gl_version );
+	return new Stage( window, gl_context, width, height );
 }
 
 /++ Definitions on how to Render Scene Objects ++/
@@ -49,52 +55,52 @@ class Stage
 {
 public: /+----    Variables    ----+/
 	/+ I spent way too long debating gross camelCase or PascalCase.  Got to be consistent. +/ 
-	@property float AspectRatio(){ return this._aspectRatio; }
-	@property Scene CurrentScene(){ return this._currentScene; }
-	Scene SetScene(Scene scene){ return this._currentScene =scene; }
-	Keyboard Cur_Keyboard;
-	Mouse Cur_Mouse;
-	long msecs_frame =20; /+TODO Pretty up!+/
-	
+		/+ 1/27/16 THE DEBATE CONTINUES+/
+	@property float AspectRatio() { return this._AspectRatio; }
+	@property Scene CurrentScene() { return this._CurrentScene; }
+	Scene SetScene(Scene scene) { return this._CurrentScene = scene; }
+	Keyboard CurKeyboard;
+	Mouse CurMouse;
+	long msecs_frame = 20;	
 private:
-	Scene _currentScene;
-	bool _isRunning;
+	Scene _CurrentScene;
+	bool _IsRunning;
 	
 	/+Currently lock all Stages to the same Context+/
-	static SDL_Window* _window;
-	static SDL_GLContext _glContext;
+	static SDL_Window* _Window;
+	static SDL_GLContext _GLContext;
 	
-	uint shader, vertex_shader, fragment_shader;
-	int _width, _height;
-	float _aspectRatio;
-	int _pvmLocation, _colourLocation;
+	uint _Shader, _VertShader, _FragShader, _TextureLocation;
+	int _Width, _Height;
+	float _AspectRatio;
+	int _PVMLocation, _ColourLocation;
 	
 public: /+----    Functions    ----+/
-	this( SDL_Window* window, SDL_GLContext glcontext, int width, int height )
+	this( SDL_Window* window, SDL_GLContext gl_context, int width, int height )
 	{
-		this.Cur_Mouse =new Mouse();
-		this.Cur_Keyboard =new Keyboard();
-		this.OnStart ={}; this.OnQuit ={};
-		//this.OnUpdate =d=>{};
-		/+Neither of these work??+/
-		//this.OnKeyDown =(k)=>{};
-		//this.OnKeyDown =(k)=>{return;}; this.OnKeyUp =(k)=>{return;};
-		this._window =window;
-		this._glContext =glcontext;
-		this._width =width;
-		this._height =height;
-		this._aspectRatio =cast(float)_width /height;
+		/+Inputs should be assigned by GL thread, and act as state machines+/
+		this.CurMouse = new Mouse();
+		this.CurKeyboard = new Keyboard();
+		this.OnStart = {}; this.OnQuit = {};
+		this.OnUpdate = (d){};
+		this.OnKeyDown = (k){}; this.OnKeyUp = (k){};
+		
+		this._Window = window;
+		this._GLContext = gl_context;
+		this._Width = width;
+		this._Height = height;
+		this._AspectRatio = cast(float)width / height;
 	}
 	~this()
 	{
-		SDL_GL_DeleteContext( _glContext );
-		SDL_DestroyWindow( _window );
+		SDL_GL_DeleteContext( _GLContext );
+		SDL_DestroyWindow( _Window );
 		SDL_Quit(); /+ Likely does nasty things in case of multiple Stages running +/
 	}
 	void Quit()
 	{
 		this.OnQuit();
-		this._isRunning =false; 
+		this._IsRunning = false; 
 	}
 	void Start()
 	{ 
@@ -105,115 +111,107 @@ public: /+----    Functions    ----+/
 "layout(location = 1) in vec2 v_uv;"
 "out vec2 uv;"
 "void main () {"
-"  uv =v_uv;"
-"  gl_Position = pvm *vec4(vp, 1.0);"
+"  uv = v_uv;"
+"  gl_Position = pvm * vec4(vp, 1.0);"
 "}";
 	
 		/+Replace with texels for Spritesheet Accuracy!+/
+			/+Update: Accuracy pretty slick at the moment, actually+/
 		const char* fragment_script ="#version 400\n"
 "uniform vec3 model_colour;"
 "in vec2 uv;"
 "uniform sampler2D model_texture;"
 "out vec4 frag_colour;"
 "void main () {"
-"  frag_colour = texture(model_texture, uv) *vec4 (model_colour, 1.0);"
+"  frag_colour = texture(model_texture, uv) * vec4(model_colour, 1.0);"
 "}";
-		vertex_shader =LoadShader( GL_VERTEX_SHADER, vertex_script );
-		fragment_shader =LoadShader( GL_FRAGMENT_SHADER, fragment_script );
+		this._VertShader = LoadShader( GL_VERTEX_SHADER, vertex_script );
+		this._FragShader = LoadShader( GL_FRAGMENT_SHADER, fragment_script );
 		
-		shader =glCreateProgram();
-		glAttachShader( shader, vertex_shader );
-		glAttachShader( shader, fragment_shader );
-		glLinkProgram( shader );
+		this._Shader = glCreateProgram();
+		glAttachShader( _Shader, _VertShader );
+		glAttachShader( _Shader, _FragShader );
+		glLinkProgram( _Shader );
 		
-		glEnable (GL_BLEND);
-		glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		
-		this._pvmLocation =glGetUniformLocation( shader, "pvm" );
-		this._colourLocation =glGetUniformLocation( shader, "model_colour" );
+		this._PVMLocation = glGetUniformLocation( _Shader, "pvm" );
+		this._ColourLocation = glGetUniformLocation( _Shader, "model_colour" );
 		
-		_texid =glGetUniformLocation(shader, "model_texture");
+		this._TextureLocation = glGetUniformLocation( _Shader, "model_texture" );
 		
-		debug writefln("Texture Uniform: %d\nColour Uniform: %d\nMatrix Uniform: %d\n",
-			_texid, _colourLocation, _pvmLocation );
+	debug writefln( "Texture Uniform: %d\nColour Uniform: %d\nMatrix Uniform: %d\n", _TextureLocation, _ColourLocation, _PVMLocation );
 		//_renderThrd =new Thread(&RenderLoop);
 		this.OnStart();
-		this._isRunning =true;
+		this._IsRunning =true;
 		UpdateLoop();
 	}
 	void delegate(float) OnUpdate;
 	void delegate() OnStart, OnQuit;
 	void delegate(SDL_Keycode) OnKeyDown, OnKeyUp;
 private:
-	uint _texid;
 	void RenderLoop()
 	{
-		glClear( GL_COLOR_BUFFER_BIT /+ | GL_DEPTH_BUFFER_BIT +/);
-		glUseProgram( shader );
-		glActiveTexture(GL_TEXTURE0);
-		glUniform1i(_texid, 0);
+		glClear( GL_COLOR_BUFFER_BIT /+ | GL_DEPTH_BUFFER_BIT +/ );
+		glUseProgram( _Shader );
+		glActiveTexture( GL_TEXTURE0 );
+		glUniform1i( _TextureLocation, 0 );
 
-		foreach( render; _currentScene.Props )
-			{ render.Render(_currentScene.Perspective, _pvmLocation, _colourLocation); }
+		foreach( render; _CurrentScene.Props )
+			{ render.Render( _CurrentScene.Perspective, _PVMLocation, _ColourLocation ); }
 		
-		SDL_GL_SwapWindow( _window );
+		SDL_GL_SwapWindow( _Window );
 		//Thread.sleep(dur!"msecs"(20));
-	}
-	void ParseKey( SDL_KeyboardEvent evnt )
-	{
-		if( evnt.type == SDL_KEYDOWN )
-			{ OnKeyDown(evnt.keysym.sym); }
-		else
-			{ OnKeyUp(evnt.keysym.sym); }
 	}
 	void UpdateLoop()
 	{
-		SDL_Event windowEvent;
-		while( _isRunning )
+		SDL_Event window_event;
+		while( _IsRunning )
 		{
-			while( SDL_PollEvent(&windowEvent) != 0 )
+			while( SDL_PollEvent(&window_event) != 0 )
 			{
-				switch( windowEvent.type )
+				switch( window_event.type )
 				{
 					case SDL_MOUSEMOTION:
-						Cur_Mouse.UpdatePosition( windowEvent.motion.x, windowEvent.motion.y );
+						CurMouse.UpdatePosition( window_event.motion.x, window_event.motion.y );
 						break;
 					case SDL_KEYDOWN:
-						OnKeyDown(windowEvent.key.keysym.sym);
+						OnKeyDown( window_event.key.keysym.sym );
 						break;
 					case SDL_KEYUP:
-						OnKeyUp(windowEvent.key.keysym.sym);
+						OnKeyUp( window_event.key.keysym.sym );
 						break;
 					case SDL_MOUSEBUTTONDOWN:
 					/+Lazy lazy!!+/
-						windowEvent.button.button == SDL_BUTTON_LEFT ? Cur_Mouse.SetLeft(true) : Cur_Mouse.SetRight(true);
+						window_event.button.button == SDL_BUTTON_LEFT ? CurMouse.SetLeft(true) : CurMouse.SetRight(true);
 						break;
 					case SDL_MOUSEBUTTONUP:
-						windowEvent.button.button == SDL_BUTTON_LEFT ? Cur_Mouse.SetLeft(false) : Cur_Mouse.SetRight(false);
+						window_event.button.button == SDL_BUTTON_LEFT ? CurMouse.SetLeft(false) : CurMouse.SetRight(false);
 						break;
 					case SDL_QUIT:
-						this._isRunning =false;
+						this._IsRunning = false;
 						break;
 					default:
 						break;
 				}
 			}
-			OnUpdate(msecs_frame);
+			OnUpdate( msecs_frame / 1000f );
 			RenderLoop();
 			debug
 			{
-				auto error =glGetError();
+				auto error = glGetError();
 				if( error ){ writefln("OPENGL ERROR CODE %d", error); }
 			}
-			Thread.sleep(dur!"msecs"(msecs_frame));
+			Thread.sleep( dur!"msecs"(msecs_frame) );
 		}
 	}
 	/+ networkLoop? +/
 }
 
-private uint LoadShader( uint shaderType, const char* shader )
+private uint LoadShader( uint shader_type, const char* shader )
 {
-		uint shader_buf =glCreateShader( shaderType );
+		uint shader_buf = glCreateShader( shader_type );
 		glShaderSource( shader_buf, 1, &shader, null );
 		glCompileShader( shader_buf );
 		return shader_buf;

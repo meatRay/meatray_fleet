@@ -19,9 +19,10 @@ interface IRenderer
 }
 class Render :IRenderer
 {
-	public bool Visible =true;
-	public Vector!(float,3) Colour =vec3(1f,1f,1f);
-	public this()
+public: 
+	bool Visible =true;
+	Vector!(float,3) Colour =vec3(1f,1f,1f);
+	this()
 		{ Position =vec3(0f,0f,0f); }
 	~this()
 	{

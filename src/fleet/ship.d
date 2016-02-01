@@ -1,6 +1,7 @@
 module fleet.ship;
 
 import theatre.rendering;
+import theatre.logging;
 import gl3n.linalg;
 
 debug import std.stdio;
@@ -253,7 +254,7 @@ public: /+----    Functions    ----+/
 
 enum RoomType{ Blank, Gyro, Engine };
 
-class Room :IRenderable
+class Room :IRenderable, ILogged
 {
 public: /+----    Variables    ----+/
 	RoomType Type;
@@ -261,7 +262,7 @@ public: /+----    Variables    ----+/
 	Room[4] Neighbours;
 public: /+----    Functions    ----+/
 	@property Render Renderer(){ return MyRender; }
-	string Log(/+Detail_Level+/)
+	override string FormatLog( LogDetail detail_level )
 	{ return format(`[Room]
   Neighbours: [%s,%s,%s,%s]
   Type: %s

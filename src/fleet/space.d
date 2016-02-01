@@ -4,6 +4,7 @@ import fleet.ship;
 
 import theatre;
 import theatre.input;
+import theatre.logging;
 import theatre.rendering;
 
 import gl3n.linalg;
@@ -39,7 +40,7 @@ void main()
 	
 	stage.OnUpdate =(delta_time)
 	{
-		ship.Update(stage.msecs_frame);
+		ship.Update(delta_time);
 		
 		/+We're just going to be keeping track of the mouse, and altering the Ship's path.+/
 		accum_tick +=delta_time;
@@ -62,7 +63,7 @@ void main()
 				if( accum_tick > 0.4 || abs((nangle =atan2( delta.y, delta.x )) - last_angle) > 0.4f )
 				{
 					if( nangle != 0f )
-					debug writeln( "NANGLE "~nangle.stringof );
+					debug writefln( "NANGLE %f", nangle );
 					last_angle = nangle;
 					last_path = vec_new;
 					debug writeln( vec_new.as_string );
@@ -92,7 +93,7 @@ void main()
 	foreach( room ; ship.Chunks[0].Rooms )
 	{
 		if( room.Renderer is null )
-		{ debug writefln("WEE WOO NULL POLICE AT %s", room.Log() ); }
+		{ debug writefln("WEE WOO NULL POLICE AT %s", room.FormatLog() ); }
 	}
 	
 	stage.Start();

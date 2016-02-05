@@ -11,20 +11,44 @@ import std.stdio :writeln;
  + Should LogDetail be flags?  <- Yes that's fucking radical
  +/
 
-enum LogDetail{ None = 0 , Low = 1 , Medium = 2 , High = 4 , All = 7 };
+enum LogDetail{ None = 0, Low = 1, Medium = 2, High = 4, Ingore_High = 3, Ignore_Low = 6, All = 7  };
 LogDetail DefaultDetail = LogDetail.High;
 LogDetail LogDetails = LogDetail.All;
+
+private LogDetail HighestDetail (LogDetail detail)
+{
+    if (!detail)
+    	return LogDetail.None;
+    LogDetail roller = LogDetail.Low;
+    while (detail >>= 1)
+    	{ roller <<= 1; }
+    return roller;
+}
+
+/+
+ + Logs should just be writefln++ that allows for dif. detail on LogDetail
+ +/
 
 /+Make Threadsafe!+/
 void Log( ILogged logged )
 	{ Log( DefaultDetail, logged ); }
-void Log( string format, LogDetail detail_level, ... )
+/+Merge too?+/
+void Log( string logged )
+	{ Log( DefaultDetail, logged ); }
+void Log( LogDetail detail_level, ILogged logged ) 
+in{ assert(detail_level == DetailLevel.Low || detail_level == DetailLevel.Medium || detail_level == DetailLevel.High); }
+body
 {
-	if( detail_level <= MaxDetail )
+	detail_level = HighestDetail( detail_level & LogDetails );
+	if( detail_level )
 		{ writeln( logged.FormatLog(detail_level) ); }
 }
-void Log(  LogDetail detail_level  ILogged logged )
+/+Compact with above using sneak D swizzling+/
+void Log( LogDetail detail_level, string logged )
 {
+	detail_level = HighestDetail( detail_level & LogDetails );
+	if( detail_level )
+		{ writeln( logged ); }
 }
 
 interface ILogged

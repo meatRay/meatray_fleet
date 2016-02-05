@@ -264,10 +264,18 @@ public: /+----    Variables    ----+/
 public: /+----    Functions    ----+/
 	@property Render Renderer(){ return MyRender; }
 	override string FormatLog( LogDetail detail_level )
-	{ return format(`[Room]
-  Neighbours: [%s,%s,%s,%s]
-  Type: %s
-  Render: %s`, Up, Right, Down, Left, Type, MyRender ); }
+	{ 
+		switch( detail_level )
+		{
+		case DetailLevel.High:
+			return format(`[Room]`
+			`Neighbours: [%s,%s,%s,%s]`
+			`Type: %s`
+			`Render: %s`, Up, Right, Down, Left, Type, MyRender ); 
+		default:
+			return "";
+		}
+    }
 	
 	@property Room Up(){return Neighbours[0];}
 	@property Room Right(){return Neighbours[1];}

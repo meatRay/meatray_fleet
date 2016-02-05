@@ -5,7 +5,7 @@ import fleet.ship;
 
 import theatre;
 import theatre.input;
-import theatre.logging;
+debug import theatre.logging;
 import theatre.rendering;
 
 import gl3n.linalg;
@@ -18,6 +18,7 @@ import std.math;
 /+Annotated for a friend+/
 void main()
 {
+	debug DefaultDetail = LogDetail.Low;
 	/+Create a Stage+/
 	Stage stage =CreateStage("theatre_example", 800, 640);
 	/+Create a Scene of Objects, rendered Orthographically+/
@@ -64,10 +65,10 @@ void main()
 				if( accum_tick > 0.4 || abs((nangle =atan2( delta.y, delta.x )) - last_angle) > 0.4f )
 				{
 					if( nangle != 0f )
-					debug writefln( "NANGLE %f", nangle );
+					debug Log( format("NANGLE " ~ nangle) );
 					last_angle = nangle;
 					last_path = vec_new;
-					debug writeln( vec_new.as_string );
+					debug Log( vec_new.as_string );
 					auto dbg = new Render();
 					dbg.Position = vec3( vec_new, 0f );
 					dbg.LoadObject( path_shape,path_tex );
@@ -84,7 +85,7 @@ void main()
 		debug
 		{
 			auto rm = ship.Chunks[0].Rooms[0];
-			writefln("Removed Room X: %f, Y: %f", rm.Renderer.Position.x, rm.Renderer.Position.y);
+			debug Log( format("Removed Room X: %f, Y: %f", rm.Renderer.Position.x, rm.Renderer.Position.y) );
 			ship.Chunks = DEBUG_FractureChunk( ship.Chunks[0].Rooms[4] );
 			DEBUG_ShipFindController( ship );
 		}
@@ -94,7 +95,7 @@ void main()
 	foreach( room ; ship.Chunks[0].Rooms )
 	{
 		if( room.Renderer is null )
-		{ debug writefln("WEE WOO NULL POLICE AT %s", room.FormatLog() ); }
+		{ debug Log( room ); }
 	}
 	
 	stage.Start();

@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module fleet.ship;
 
 import theatre.rendering;

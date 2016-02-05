@@ -1,4 +1,4 @@
-/+++/
+/++Authors: meatRay+/
 module theatre.stage;
 
 import theatre.scene;

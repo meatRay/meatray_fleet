@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module theatre.scene;
 
 import theatre.rendering.renderer;

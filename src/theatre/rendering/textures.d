@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module theatre.rendering.textures;
 
 import derelict.sdl2.image;

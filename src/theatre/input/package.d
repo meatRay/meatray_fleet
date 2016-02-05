@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module theatre.input;
 
 public import theatre.input.mouse;

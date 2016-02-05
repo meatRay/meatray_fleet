@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module fleet.space;
 
 import fleet.ship;

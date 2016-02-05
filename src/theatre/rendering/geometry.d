@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module theatre.rendering.geometry;
 
 import derelict.opengl3.gl3;

@@ -1,3 +1,4 @@
+/++Authors: meatRay+/
 module theatre.rendering;
 
 public import theatre.rendering.geometry;

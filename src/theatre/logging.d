@@ -1,4 +1,4 @@
-/+++/
+/++Authors: meatRay+/
 module theatre.logging;
 
 import std.stdio :writeln;
@@ -11,17 +11,17 @@ import std.stdio :writeln;
  + Should LogDetail be flags?  <- Yes that's fucking radical
  +/
 
-enum LogDetail{ None, Low, Medium, High };
+enum LogDetail{ None = 0 , Low = 1 , Medium = 2 , High = 4 , All = 7 };
 LogDetail DefaultDetail = LogDetail.High;
-LogDetail MaxDetail = LogDetail.High;
+LogDetail LogDetails = LogDetail.All;
 
 /+Make Threadsafe!+/
 void Log( ILogged logged )
 	{ Log( DefaultDetail, logged ); }
 void Log( string format, LogDetail detail_level, ... )
 {
-	detail_level = detail_level > MaxDetail ? MaxDetail : detail_level;
-	writeln( logged.FormatLog(detail_level) );
+	if( detail_level <= MaxDetail )
+		{ writeln( logged.FormatLog(detail_level) ); }
 }
 void Log(  LogDetail detail_level  ILogged logged )
 {

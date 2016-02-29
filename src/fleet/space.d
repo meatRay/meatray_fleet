@@ -2,6 +2,7 @@
 module fleet.space;
 
 import fleet.ship;
+import fleet.debughelpers;
 
 import theatre;
 import theatre.input;
@@ -65,7 +66,7 @@ void main()
 				if( accum_tick > 0.4 || abs((nangle = atan2( delta.y, delta.x )) - last_angle) > 0.4f )
 				{
 					if( nangle != 0f )
-					debug Log( format("NANGLE " ~ nangle) );
+					debug Log( format("NANGLE %f", nangle) );
 					last_angle = nangle;
 					last_path = vec_new;
 					debug Log( vec_new.as_string );

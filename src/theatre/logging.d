@@ -11,6 +11,11 @@ import std.stdio :writeln;
  + Should LogDetail be flags?  <- Yes that's fucking radical
  +/
 
+ 
+/+
+ + BIGGEST PROBLEM --
+ + Make difference between message detail, and message importance!
+ +/
 enum LogDetail{ None = 0, Low = 1, Medium = 2, High = 4, Ingore_High = 3, Ignore_Low = 6, All = 7  };
 LogDetail DefaultDetail = LogDetail.High;
 LogDetail LogDetails = LogDetail.All;
@@ -36,7 +41,7 @@ void Log( ILogged logged )
 void Log( string logged )
 	{ Log( DefaultDetail, logged ); }
 void Log( LogDetail detail_level, ILogged logged ) 
-in{ assert(detail_level == DetailLevel.Low || detail_level == DetailLevel.Medium || detail_level == DetailLevel.High); }
+in{ assert(detail_level == LogDetail.Low || detail_level == LogDetail.Medium || detail_level == LogDetail.High); }
 body
 {
 	detail_level = HighestDetail( detail_level & LogDetails );

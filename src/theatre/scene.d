@@ -16,19 +16,19 @@ class Scene
 	@property public View CurrentView(){ return this._view; }
 	public this( View view_type, float width, float height )
 	{
-		this.Location =vec3(0f,0f,0f);
+		this.Location = vec3(0f,0f,0f);
 		SetView( view_type, width, height );
 	}
 	public void SetView( View view_type, float width, float height )
 	{
-		_view =view_type;
+		_view = view_type;
 		switch( view_type )
 		{
 			case View.Ortho:
-				Perspective =mat4.orthographic( width /-2f, width /2f, height /-2f, height /2f, 0f, 1f );
+				Perspective = mat4.orthographic( width /-2f, width /2f, height /-2f, height /2f, 0f, 1f );
 				return;			
 			default:
-				Perspective =mat4.identity;
+				Perspective = mat4.identity;
 				return;
 		}
 	}

@@ -26,7 +26,7 @@ static this()
 /++ Create a Stage and initialize an OpenGL 4.0 Context
  + Throws: Detailed Exception upon SDL or OpenGL 4.0 initializing error.
 ++/
-public static Stage CreateStage( const char* stage_name ="meatray_Theatre", int width =800, int height =640 )
+public static Stage CreateStage( const char* stage_name = "meatray_Theatre", int width = 800, int height = 640 )
 {
 	import std.exception : enforce;
 	SDL_Window* window;
@@ -36,7 +36,7 @@ debug writeln( "Initializing SDL /OpenGL3 Components" );
 	/+ Create static SDL rendering threads for instantiated GL Render contexts? +/
 	enforce( SDL_Init( SDL_INIT_VIDEO ) >= 0, "Error initializing SDL2 [ SDL_INIT_VIDEO ]" );
 	enforce(
-		(window =SDL_CreateWindow(stage_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
+		(window = SDL_CreateWindow(stage_name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN))
 		!is null,
 		"SDL -> OpenGL display creation failed!"
 	);
@@ -117,7 +117,7 @@ public: /+----    Functions    ----+/
 	
 		/+Replace with texels for Spritesheet Accuracy!+/
 			/+Update: Accuracy pretty slick at the moment, actually+/
-		const char* fragment_script ="#version 400\n"
+		const char* fragment_script = "#version 400\n"
 "uniform vec3 model_colour;"
 "in vec2 uv;"
 "uniform sampler2D model_texture;"
@@ -142,9 +142,9 @@ public: /+----    Functions    ----+/
 		this._TextureLocation = glGetUniformLocation( _Shader, "model_texture" );
 		
 	debug writefln( "Texture Uniform: %d\nColour Uniform: %d\nMatrix Uniform: %d\n", _TextureLocation, _ColourLocation, _PVMLocation );
-		//_renderThrd =new Thread(&RenderLoop);
+		//_renderThrd = new Thread(&RenderLoop);
 		this.OnStart();
-		this._IsRunning =true;
+		this._IsRunning = true;
 		UpdateLoop();
 	}
 	void delegate(float) OnUpdate;

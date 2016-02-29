@@ -20,8 +20,8 @@ public: /+----    Variables    ----+/
 	 Chunk Controller;
 	 
 private:
-	const float TURNS =0.5f *PI;
-	const float SPEED =8f;
+	const float TURNS = 0.5f *PI;
+	const float SPEED = 8f;
 	float _tick=1f;
 	
 public: /+----    Functions    ----+/
@@ -42,15 +42,15 @@ public: /+----    Functions    ----+/
 	{
 		if( !Path.empty )
 		{
-			auto delta =Path.front -Controller.Position.xy;
+			auto delta = Path.front - Controller.Position.xy;
 			
-			float ang =(atan2( delta.y, delta.x ) -PI_2);
-			float a2 =ang -(2f *PI);
-			float a3 =ang +(2f *PI);
+			float ang = (atan2( delta.y, delta.x ) -PI_2);
+			float a2 = ang -(2f *PI);
+			float a3 = ang +(2f *PI);
 			if( _tick >= 0.4f )
 			{
 				/+Doesn't happen often, but take this out of debug ticks+/
-				Controller.Z_Rotation =fmod(Controller.Z_Rotation, PI *2f);
+				Controller.Z_Rotation = fmod(Controller.Z_Rotation, PI *2f);
 				
 				debug writefln( "%f,%f,%f", a2, ang, a3 );
 			}
@@ -60,20 +60,20 @@ public: /+----    Functions    ----+/
 			if( abs(a2 -Controller.Z_Rotation) < abs(ang -Controller.Z_Rotation) )
 			{
 				if( abs(a2 -Controller.Z_Rotation) < abs(a3 -Controller.Z_Rotation) )
-					{ ang =a2; }
+					{ ang = a2; }
 				else if( abs(a3 -Controller.Z_Rotation) < abs(a2 -Controller.Z_Rotation) )
-					{ ang =a3; }
+					{ ang = a3; }
 			}
 			else if ( abs(a3 -Controller.Z_Rotation) < abs(ang -Controller.Z_Rotation) )
-				{ ang =a3; }
+				{ ang = a3; }
 				
 				
-			float n_speed =SPEED /(1f +abs(ang -Controller.Z_Rotation));					
+			float n_speed = SPEED /(1f +abs(ang -Controller.Z_Rotation));					
 			if( _tick >= 0.4f )
 			{
 				debug writeln(ang);
 				debug writeln((SPEED /2f) /n_speed);
-				_tick =0f;
+				_tick = 0f;
 			}
 			Controller.Z_Rotation +=(ang -Controller.Z_Rotation) *delta_time *TURNS;
 			_tick +=delta_time;
@@ -96,22 +96,22 @@ public: /+----    Functions    ----+/
 
 void DEBUG_ShipFindController( Ship ship )
 {
-	ship.Controller =ship.Chunks[0];
+	ship.Controller = ship.Chunks[0];
 }
 
 Ship FromFormatHelper( string formatted_input )
 {
-	Room[][] rooms =new Room[][5];
-	for( int i =0; i < rooms.length; ++i )
-		{ rooms[i] =new Room[6]; }
+	Room[][] rooms = new Room[][5];
+	for( int i = 0; i < rooms.length; ++i )
+		{ rooms[i] = new Room[6]; }
 	int x, y;
 	
-	auto shape =new Shape( Shape.Primitives.SquareVertices, Shape.Primitives.SquareMap );
-	auto tex =CreateTexture( "box.png" );
+	auto shape = new Shape( Shape.Primitives.SquareVertices, Shape.Primitives.SquareMap );
+	auto tex = CreateTexture( "box.png" );
 	
-	int cnt_at =0;
-	Ship ship =new Ship();
-	ship.Chunks =[ new Chunk() ];
+	int cnt_at = 0;
+	Ship ship = new Ship();
+	ship.Chunks = [ new Chunk() ];
 	foreach( c; formatted_input )
 	{
 		debug writefln( "%d, %d", x, y );
@@ -126,7 +126,7 @@ Ship FromFormatHelper( string formatted_input )
 			continue;
 		}
 		
-		rooms[x][y] =new Room();
+		rooms[x][y] = new Room();
 		rooms[x][y].Type = RoomType.Blank;
 		switch( c )
 		{
@@ -159,14 +159,14 @@ Ship FromFormatHelper( string formatted_input )
 				break;
 		}
 	}
-	Room[] fin_rooms =new Room[ rooms.map!( r => r.count!"a !is null" ).sum() ];
+	Room[] fin_rooms = new Room[ rooms.map!( r => r.count!"a !is null" ).sum() ];
 	int at;
 	foreach( ray; rooms )
 		foreach( room; ray )
 			if( room !is null )
-				{ fin_rooms[at++] =room; }
-	ship.Chunks[0].Rooms =fin_rooms;
-	ship.Controller =ship.Chunks[0];
+				{ fin_rooms[at++] = room; }
+	ship.Chunks[0].Rooms = fin_rooms;
+	ship.Controller = ship.Chunks[0];
 	return ship;
 }
 
@@ -176,15 +176,15 @@ class Chunk :IRenderable
 public: /+----    Variables    ----+/
 	Room Engine, Gyro;
 	vec3 Position;
-	float Z_Rotation =0f;
+	float Z_Rotation = 0f;
 	Room[] Rooms;
 public: /+----    Functions    ----+/
 	
 	public this()
 	{
-		this._renders =new ChunkRenders();
-		this._renders.InsideChunk =this;
-		this.Position =vec3(0f,0f,0f);
+		this._renders = new ChunkRenders();
+		this._renders.InsideChunk = this;
+		this.Position = vec3(0f,0f,0f);
 	}
 	@property Render Renderer(){ return this._renders; }
 private: /+----    Variables    ----+/
@@ -193,16 +193,16 @@ private: /+----    Variables    ----+/
 
 Chunk[] DEBUG_FractureChunk( Room removed )
 {
-	Chunk[] new_chunks =new Chunk[4];
-	int at =0;
+	Chunk[] new_chunks = new Chunk[4];
+	int at = 0;
 	if( removed.Up !is null )
-		{ removed.Up.Down =null; }
+		{ removed.Up.Down = null; }
 	if( removed.Right !is null && !new_chunks.any!(c => c !is null && !c.Rooms.find(removed.Right).empty ) )
-		{ removed.Right.Left =null; }
+		{ removed.Right.Left = null; }
 	if( removed.Down !is null && !new_chunks.any!(c => c !is null && !c.Rooms.find(removed.Down).empty ) )
-		{ removed.Down.Up =null; }
+		{ removed.Down.Up = null; }
 	if( removed.Left !is null && !new_chunks.any!(c => c !is null && !c.Rooms.find(removed.Left).empty ) )
-		{ removed.Left.Right =null; }
+		{ removed.Left.Right = null; }
 	foreach( nbr; removed.Neighbours )
 	if( nbr !is null )
 	{

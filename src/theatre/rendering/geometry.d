@@ -10,7 +10,7 @@ debug import std.stdio;
 struct TexPoint
 {
 	public this( ushort u, ushort v )
-		{ UV.u =u; UV.v =v; }
+		{ UV.u = u; UV.v = v; }
 	Vector!(ushort,2) UV;
 }
 
@@ -18,7 +18,7 @@ struct Location
 {
 	public this( float x, float y, float z )
 	{
-		Position.x =x; Position.y =y; Position.z =z;
+		Position.x = x; Position.y = y; Position.z = z;
 	}
 	Vector!(float,3) Position;
 }
@@ -35,7 +35,7 @@ public: /+----    Functions    ----+/
 		{ LoadVertices(vertices, map); }
 	void LoadVertices( in Location[] vertices, in TexPoint[] map )
 	{
-		this.Points =vertices.length;
+		this.Points = vertices.length;
 		assert( vertices.length == map.length );
 		glGenBuffers( 1, &_VertexBuffer );
 		glGenBuffers( 1, &_MapBuffer );

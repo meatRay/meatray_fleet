@@ -21,10 +21,10 @@ interface IRenderer
 class Render :IRenderer
 {
 public: 
-	bool Visible =true;
-	Vector!(float,3) Colour =vec3(1f,1f,1f);
+	bool Visible = true;
+	Vector!(float,3) Colour = vec3(1f,1f,1f);
 	this()
-		{ Position =vec3(0f,0f,0f); }
+		{ Position = vec3(0f,0f,0f); }
 	~this()
 	{
 		glDeleteVertexArrays(1, &_objectBuffer);
@@ -36,8 +36,8 @@ public:
 	private Texture _texture;
 	public void LoadObject( Shape shape, Texture texture) /+ Pass in Shape and Texture? +/
 	{
-		this._shape =shape;
-		this._texture =texture;
+		this._shape = shape;
+		this._texture = texture;
 		glGenVertexArrays( 1, &_objectBuffer );
 		glBindVertexArray( _objectBuffer );
 		glEnableVertexAttribArray( 0 );
@@ -54,7 +54,7 @@ public:
 			_texture.BindBuffer();
 			glBindVertexArray( _objectBuffer );
 			glUniform3fv( _colourUniform, 1, Colour.value_ptr );
-			pv =pv *mat4.translation( Position );
+			pv = pv *mat4.translation( Position );
 			glUniformMatrix4fv( _transformUniform, 1, GL_TRUE, pv.value_ptr);
 			glDrawArrays( GL_TRIANGLES, 0, _shape.Points );
 		}
@@ -66,7 +66,7 @@ class RotateRender :Render
 	public Vector!(float,3) Rotation;
 	public this()
 	{ 
-		Rotation =vec3(0f,0f,0f);
+		Rotation = vec3(0f,0f,0f);
 		super();
 	}
 		
@@ -82,7 +82,7 @@ class RotateRender :Render
 			pv.rotatex(Rotation.x);
 			pv.rotatey(Rotation.y);
 			pv.rotatez(Rotation.z);
-			pv =pv *mat4.translation( Position );
+			pv = pv *mat4.translation( Position );
 			glUniformMatrix4fv( _transformUniform, 1, GL_TRUE, pv.value_ptr);
 			glDrawArrays( GL_TRIANGLES, 0, _shape.Points );
 		}

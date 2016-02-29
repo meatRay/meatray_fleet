@@ -62,7 +62,7 @@ void main()
 			{
 				auto delta = last_path - vec_new;
 				float nangle = 0f;
-				if( accum_tick > 0.4 || abs((nangle =atan2( delta.y, delta.x )) - last_angle) > 0.4f )
+				if( accum_tick > 0.4 || abs((nangle = atan2( delta.y, delta.x )) - last_angle) > 0.4f )
 				{
 					if( nangle != 0f )
 					debug Log( format("NANGLE " ~ nangle) );
@@ -101,9 +101,9 @@ void main()
 	stage.Start();
 }
 
-vec2 WinToStage( vec2i mouse, vec2i win_bounds, vec2 stage_bounds, vec2 camera =vec2(0f,0f) )
+vec2 WinToStage( vec2i mouse, vec2i win_bounds, vec2 stage_bounds, vec2 camera = vec2(0f,0f) )
 {
-	vec2 ratio =vec2( win_bounds.x /stage_bounds.x, win_bounds.y /stage_bounds.y );
+	vec2 ratio = vec2( win_bounds.x /stage_bounds.x, win_bounds.y /stage_bounds.y );
 	return vec2( ((mouse.x -(win_bounds.x /2)) /ratio.x), ((-mouse.y +(win_bounds.y /2) )/ratio.y) );
 }
 

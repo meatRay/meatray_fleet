@@ -1,3 +1,7 @@
+/++
+	This is a useless comment.
+++/
+
 /++Authors: meatRay+/
 module theatre.rendering.geometry;
 
